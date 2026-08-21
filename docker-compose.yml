@@ -6,15 +6,15 @@ services:
       context: ./database
     container_name: loktathya_postgres
     environment:
-      POSTGRES_USER: \
-      POSTGRES_PASSWORD: \
-      POSTGRES_DB: \
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: loktathya
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U \ -d \"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d loktathya"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -38,8 +38,8 @@ services:
     image: minio/minio:RELEASE.2024-05-10T01-41-38Z
     container_name: loktathya_minio
     environment:
-      MINIO_ROOT_USER: \
-      MINIO_ROOT_PASSWORD: \
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
@@ -61,13 +61,13 @@ services:
     volumes:
       - ./backend:/app
     environment:
-      DATABASE_URL: postgresql://\:\@postgres:5432/\
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/loktathya
       REDIS_URL: redis://redis:6379/0
       MINIO_ENDPOINT: minio:9000
-      MINIO_ACCESS_KEY: \
-      MINIO_SECRET_KEY: \
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
     ports:
-      - "8000:8000"
+      - "8001:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -86,11 +86,11 @@ services:
       - ./backend:/app
     command: ["celery", "-A", "core.celery_app", "worker", "--loglevel=info"]
     environment:
-      DATABASE_URL: postgresql://\:\@postgres:5432/\
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/loktathya
       REDIS_URL: redis://redis:6379/0
       MINIO_ENDPOINT: minio:9000
-      MINIO_ACCESS_KEY: \
-      MINIO_SECRET_KEY: \
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
     depends_on:
       redis:
         condition: service_healthy
@@ -107,7 +107,7 @@ services:
       - ./backend:/app
     command: ["celery", "-A", "core.celery_app", "beat", "--loglevel=info"]
     environment:
-      DATABASE_URL: postgresql://\:\@postgres:5432/\
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/loktathya
       REDIS_URL: redis://redis:6379/0
     depends_on:
       redis:
@@ -140,3 +140,5 @@ volumes:
   postgres_data:
   redis_data:
   minio_data:
+
+
