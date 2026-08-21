@@ -1,12 +1,24 @@
-from fastapi import APIRouter, BackgroundTasks
-import uuid
+from fastapi import APIRouter
+from typing import Dict, Any
+from ingestion.batch import IngestionBatchManager
 
-router = APIRouter(prefix="/api/v1/ingestion", tags=["Ingestion"])
+router = APIRouter(prefix="/api/v1/ingestion", tags=["Ingestion Dashboard"])
 
-@router.post("/{source_id}/ingest")
-def trigger_ingestion(source_id: uuid.UUID, background_tasks: BackgroundTasks):
-    from ingestion.tasks import run_ingestion_pipeline
-    # In a real app we'd dispatch to Celery. For FastAPI dummy we could use background_tasks or just return a dummy task_id.
-    task_id = str(uuid.uuid4())
-    run_ingestion_pipeline.delay(str(source_id), "http://dummy", "data_gov")
-    return {"ingestion_run_id": task_id, "status": "QUEUED"}
+@router.post("/batches")
+def trigger_batch(source_ids: list[str], scope: str = "national"):
+    return IngestionBatchManager.create_batch(source_ids, scope)
+
+@router.get("/metrics")
+def get_ingestion_metrics():
+    # Mocking actual metrics collected from the deterministic framework
+    return {
+        "sources_scheduled": 5,
+        "successful_fetches": 4,
+        "failed_fetches": 1,
+        "unchanged_content": 2,
+        "new_content_versions": 2,
+        "documents_parsed": 2,
+        "parse_failures": 1,
+        "canonical_records": 15000,
+        "quarantined_records": 42
+    }
