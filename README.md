@@ -21,30 +21,7 @@ Standard LLM chatbot assistants routinely hallucinate civic statistics, election
 ### The LokTathya Solution
 LokTathya prevents hallucination by implementing a **strict database grounding layer**. Every response from the Civic AI chatbot is mapped directly to a verified record in our PostgreSQL database. If information is not available, the system returns `DATA_NOT_AVAILABLE` instead of guessing.
 
-```
-                  +-----------------------------------------+
-                  |           Official Data Source          |
-                  |     (ECI, Ministry of Finance, etc.)    |
-                  +-----------------------------------------+
-                                       |
-                                       v
-                  +-----------------------------------------+
-                  |         Reconciliation Engine           |
-                  |     (Resolves duplicate records)        |
-                  +-----------------------------------------+
-                                       |
-                                       v
-                  +-----------------------------------------+
-                  |          Grounded SQL Database          |
-                  |     (33 Tables + Vector Embeddings)     |
-                  +-----------------------------------------+
-                                       |
-                                       v
-                  +-----------------------------------------+
-                  |            Civic AI Agent               |
-                  |   (Only replies with database facts)    |
-                  +-----------------------------------------+
-```
+![Flow Grounding Verification](https://mermaid.ink/img/Zmxvd2NoYXJ0IFRECiAgICBTcmNbIk9mZmljaWFsIERhdGEgU291cmNlXG4oRUNJLCBNaW5pc3RyeSBvZiBGaW5hbmNlLCBldGMuKSJdIC0tPnxSYXcgRmVlZHN8IFJlY29uY2lsZVsiUmVjb25jaWxpYXRpb24gRW5naW5lXG4oUmVzb2x2ZXMgZHVwbGljYXRlIHJlY29yZHMpIl0KICAgIFJlY29uY2lsZSAtLT58U3RydWN0dXJlZCBUYWJsZXN8IERCWyJHcm91bmRlZCBTUUwgRGF0YWJhc2VcbigzMyBUYWJsZXMgKyBWZWN0b3IgRW1iZWRkaW5ncykiXQogICAgREIgLS0-fFZlcmlmaWVkIENvbnRleHR8IEFnZW50WyJDaXZpYyBBSSBBZ2VudFxuKE9ubHkgcmVwbGllcyB3aXRoIGRhdGFiYXNlIGZhY3RzKSJdCgogICAgY2xhc3NEZWYgaGlnaGxpZ2h0IGZpbGw6I2UzZjJmZCxzdHJva2U6IzE1NjVjMCxzdHJva2Utd2lkdGg6MnB4OwogICAgY2xhc3NEZWYgZGF0YWJhc2UgZmlsbDojZThmNWU5LHN0cm9rZTojMmU3ZDMyLHN0cm9rZS13aWR0aDoycHg7CiAgICBjbGFzcyBTcmMsUmVjb25jaWxlLEFnZW50IGhpZ2hsaWdodDsKICAgIGNsYXNzIERCIGRhdGFiYXNlOw==)
 
 ---
 
@@ -96,18 +73,7 @@ TraceNest logs start-to-end request transactions. Request ID tags flow from Next
 
 LokTathya maps civic structures into **33 relational tables** inside PostgreSQL. Below is an overview of the core entities and their configurations:
 
-```
-+------------------+         +-----------------------+         +------------------+
-|   Geographies    |-------->|    Representatives    |<--------|  Constituencies  |
-|  (States/Dist)   |         |     (MPs / MLAs)      |         |  (Boundaries)    |
-+------------------+         +-----------------------+         +------------------+
-         |                               |                              |
-         v                               v                              v
-+------------------+         +-----------------------+         +------------------+
-|     Sources      |         |       Elections       |         |   Data Quality   |
-| (Provenance Reg) |         |   (Vote Counts/BOs)   |         | (Conflicts Logs) |
-+------------------+         +-----------------------+         +------------------+
-```
+![Detailed Database Relational Schema](https://mermaid.ink/img/ZXJEaWFncmFtCiAgICBTVEFURVMgfHwtLW97IERJU1RSSUNUUyA6IGNvbnRhaW5zCiAgICBTVEFURVMgfHwtLW97IENPTlNUSVRVRU5DSUVTIDogaGFzCiAgICBESVNUUklDVFMgfHwtLW97IENPTlNUSVRVRU5DSUVTIDogbWFwc190bwogICAgQ09OU1RJVFVFTkNJRVMgfHwtLW97IFJFUFJFU0VOVEFUSVZFX1RFUk1TIDogZWxlY3RzCiAgICBDT05TVElUVUVOQ0lFUyB8fC0tb3sgRUxFQ1RJT05fUkVTVUxUUyA6IGhhcwogICAgCiAgICBSRVBSRVNFTlRBVElWRVMgfHwtLW97IFJFUFJFU0VOVEFUSVZFX1RFUk1TIDogaG9sZHMKICAgIFJFUFJFU0VOVEFUSVZFUyB8fC0tb3sgUkVQUkVTRU5UQVRJVkVfQVNTRVRTIDogZGVjbGFyZXMKICAgIFJFUFJFU0VOVEFUSVZFUyB8fC0tb3sgUkVQUkVTRU5UQVRJVkVfQ1JJTUlOQUxfQ0FTRVMgOiBkaXNjbG9zZXMKICAgIFJFUFJFU0VOVEFUSVZFX0FTU0VUUyB8fC0tb3sgUkVQUkVTRU5UQVRJVkVfTElBQklMSVRJRVMgOiBvd2VzCiAgICAKICAgIEVMRUNUSU9OUyB8fC0tb3sgRUxFQ1RJT05fUkVTVUxUUyA6IHByb2R1Y2VzCiAgICBFTEVDVElPTlMgfHwtLW97IFZPVEVSX1RVUk5PVVQgOiByZWNvcmRzCiAgICBFTEVDVElPTl9SRVNVTFRTIHx8LS1veyBCT09USF9SRVNVTFRTIDogYnJlYWtkb3ducwogICAgQ0FORElEQVRFUyB8fC0tb3sgRUxFQ1RJT05fUkVTVUxUUyA6IGVudGVycwogICAgQ0FORElEQVRFUyB8fC0tfHwgUkVQUkVTRU5UQVRJVkVTIDogYmVjb21lcwogICAgCiAgICBQUk9KRUNUUyB8fC0tb3sgUFJPSkVDVF9CVURHRVRTIDogZnVuZHMKICAgIFBST0pFQ1RTIHx8LS1veyBNVU5JQ0lQQUxfQlVER0VUUyA6IGFsaWduc193aXRoCiAgICBDT05TVElUVUVOQ0lFUyB8fC0tb3sgUFJPSkVDVFMgOiBsb2NhdGVzCiAgICAKICAgIFNPVVJDRVMgfHwtLW97IFJFUFJFU0VOVEFUSVZFX0FTU0VUUyA6IHZlcmlmaWVzCiAgICBTT1VSQ0VTIHx8LS1veyBFTEVDVElPTl9SRVNVTFRTIDogdmVyaWZpZXMKICAgIFNPVVJDRVMgfHwtLW97IE1VTklDSVBBTF9CVURHRVRTIDogdmVyaWZpZXMKICAgIAogICAgREFUQV9RVUFMSVRZX0NPTkZMSUNUUyB8fC0tfHwgT0JTRVJWQVRJT05fUkVDT1JEUyA6IGZsYWdz)
 
 ### Table Categories
 
@@ -268,3 +234,44 @@ We welcome contributions to expand India's open civic database.
    docker compose exec backend alembic revision --autogenerate -m "description"
    ```
 3. **Anti-regression Policy**: Verify your additions don't break existing layouts or test cases by running `pytest` and Next.js production builds.
+
+---
+
+## ⚖️ 10. Code of Conduct
+
+As a nationwide civic infrastructure project, LokTathya is dedicated to providing a harassment-free experience for everyone, regardless of gender, age, sexual orientation, disability, physical appearance, race, ethnicity, or religion.
+
+### Our Standards
+* **Inclusivity & Respect**: We encourage open, positive, and collaborative discussion. Harassment, trolling, and insulting behaviors are strictly prohibited.
+* **Focus on Accuracy**: Contributors must focus on objective data analysis and verifiable facts. We do not tolerate partisan or ideological bias in database schemas or RAG pipeline configurations.
+* **Enforcement**: Project maintainers have the authority and responsibility to remove, edit, or reject comments, commits, code, wiki edits, and other contributions that do not align with this Code of Conduct.
+
+---
+
+## 🛡️ 11. Data, Privacy, and AI Ethics Policy
+
+LokTathya handles sensitive civic data relating to public representatives, candidates, and governmental expenditures. We follow strict ethical parameters to protect individual privacy while ensuring public transparency:
+
+### A. The Grounded Fact Principle
+Our AI model is bounded strictly by database records. The model is forbidden from making assertions about political figures, representatives, or elections that do not originate from officially registered provenance sources (ECI affidavits, municipal accounts, etc.).
+
+### B. Personal Identifiable Information (PII) & Redaction
+* **Public Domain Affidavits**: We disclose public representative information that is legally mandated for public inspection (e.g., criminal records, assets, and liabilities declared in election affidavits).
+* **Private PII Redacted**: We strictly redact personal contact numbers, bank account details, and private family particulars that are not part of mandatory public disclosure.
+
+### C. Bias Mitigation & Neutrality
+LokTathya is a politically neutral platform. The database schema, ingestion rules, and RAG pipelines are designed to treat all political parties and representatives equally. We provide raw, auditable statistics without editorialization or opinion mapping.
+
+---
+
+## 🔒 12. Security Policy & Vulnerability Disclosure
+
+We take security seriously and enforce container-level isolation. If you discover a vulnerability, please report it immediately.
+
+### A. Vulnerability Reporting
+Please do **not** open a public GitHub issue for security exploits. Instead, send a detailed security report to `security@loktathya.org` (or contact project maintainers). We aim to respond within 24 hours and patch issues within 7 days.
+
+### B. Security Architecture Rules
+* **Network Namespace**: Databases (PostgreSQL, Redis, MinIO) must not bind to external hosts. They reside strictly inside the `loktathya_net` Docker namespace.
+* **Environment Secrets**: Never commit `.env` or P12 credential keys. The `.gitignore` file enforces standard credential exclusions.
+
