@@ -1,15 +1,48 @@
 # LokTathya
 
-Open-source civic data infrastructure and public information platform for India.
+## Project Purpose
+LokTathya is a comprehensive Civic Intelligence platform that grounds LLM interactions in deterministically verified historical data, elections, and public representatives.
 
-## Vision
-LokTathya aims to become an open, evidence-backed, official-source-first civic data infrastructure platform for India.
-It provides citizens, developers, journalists, and researchers with accessible, traceable, and historically preserved government data, administrative information, election results, and project metrics.
+## Architecture
+- **Frontend**: Next.js 14.2.3, React, TypeScript, Tailwind CSS
+- **Backend**: FastAPI, Python 3.11
+- **Database**: PostgreSQL with PostGIS and pgvector
+- **Cache/Broker**: Redis
+- **Storage**: MinIO
+- **Tasks**: Celery (Worker & Scheduler)
+- **Deployment**: Strictly Dockerized
 
-## Quick Start
-Please refer to the following documents for more details:
-- [Architecture](ARCHITECTURE.md)
-- [Roadmap](ROADMAP.md)
-- [Design](DESIGN.md)
-- [Data Policy](DATA_POLICY.md)
-- [AI Policy](AI_POLICY.md)
+## Local Development
+Everything MUST run inside Docker. Do not run `npm` or `pip` on the host machine.
+
+### Start the Stack
+```bash
+docker compose up -d --build
+```
+This automatically maps:
+- Frontend -> localhost:3000
+- Backend -> localhost:8001 (Internally port 8000)
+- PostgreSQL -> localhost:5432
+- MinIO -> localhost:9000 & 9001
+- Redis -> localhost:6379
+
+### Environment Variables
+Copy `.env.example` to `.env` and fill in the required credentials. See `.env.example` for the required keys.
+
+### Migrations
+```bash
+docker compose exec backend alembic upgrade head
+```
+
+### Testing
+```bash
+docker compose exec backend pytest
+```
+
+### Checking Logs
+```bash
+docker compose logs -f backend
+docker compose logs -f frontend
+docker compose logs -f worker
+docker compose logs -f scheduler
+```

@@ -7,7 +7,7 @@ services:
     container_name: loktathya_postgres
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_DB: loktathya
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -39,7 +39,7 @@ services:
     container_name: loktathya_minio
     environment:
       MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
@@ -61,11 +61,11 @@ services:
     volumes:
       - ./backend:/app
     environment:
-      DATABASE_URL: postgresql://postgres:password@postgres:5432/loktathya
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:password@postgres:5432/loktathya}
       REDIS_URL: redis://redis:6379/0
       MINIO_ENDPOINT: minio:9000
-      MINIO_ACCESS_KEY: minioadmin
-      MINIO_SECRET_KEY: minioadmin
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
     ports:
       - "8001:8000"
     depends_on:
@@ -86,11 +86,11 @@ services:
       - ./backend:/app
     command: ["celery", "-A", "core.celery_app", "worker", "--loglevel=info"]
     environment:
-      DATABASE_URL: postgresql://postgres:password@postgres:5432/loktathya
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:password@postgres:5432/loktathya}
       REDIS_URL: redis://redis:6379/0
       MINIO_ENDPOINT: minio:9000
-      MINIO_ACCESS_KEY: minioadmin
-      MINIO_SECRET_KEY: minioadmin
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
     depends_on:
       redis:
         condition: service_healthy
@@ -107,7 +107,7 @@ services:
       - ./backend:/app
     command: ["celery", "-A", "core.celery_app", "beat", "--loglevel=info"]
     environment:
-      DATABASE_URL: postgresql://postgres:password@postgres:5432/loktathya
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:password@postgres:5432/loktathya}
       REDIS_URL: redis://redis:6379/0
     depends_on:
       redis:
@@ -140,5 +140,6 @@ volumes:
   postgres_data:
   redis_data:
   minio_data:
+
 
 
