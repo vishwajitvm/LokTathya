@@ -1,4 +1,4 @@
-from sqlalchemy import String, ForeignKey, DateTime
+from sqlalchemy import String, ForeignKey, DateTime, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
 from .base import Base
@@ -31,3 +31,7 @@ class Term(Base):
     jurisdiction_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('geo_entity.id'))
     valid_from: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     valid_until: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        CheckConstraint('valid_until >= valid_from', name='check_valid_dates_term'),
+    )
