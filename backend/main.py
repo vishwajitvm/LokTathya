@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 import uuid
 import time
-from routers import sources, analytics, search, geography
+from routers import sources, analytics, search, geography, chat
 
 app = FastAPI(title="LokTathya API", version="1.0.0", openapi_url="/api/v1/openapi.json")
 
@@ -10,10 +10,7 @@ app = FastAPI(title="LokTathya API", version="1.0.0", openapi_url="/api/v1/opena
 async def add_request_id_and_trace(request: Request, call_next):
     request_id = str(uuid.uuid4())
     start_time = time.time()
-    
-    # Attach to request state for downstream use
     request.state.request_id = request_id
-    
     try:
         response = await call_next(request)
         process_time = time.time() - start_time
@@ -21,17 +18,10 @@ async def add_request_id_and_trace(request: Request, call_next):
         response.headers["X-Process-Time"] = str(process_time)
         return response
     except Exception as exc:
-        return JSONResponse(
-            status_code=500,
-            content={
-                "code": "INTERNAL_ERROR",
-                "message": "An unexpected error occurred.",
-                "details": str(exc),
-                "request_id": request_id
-            }
-        )
+        return JSONResponse(status_code=500, content={"code": "INTERNAL_ERROR", "request_id": request_id})
 
 app.include_router(sources.router)
 app.include_router(analytics.router)
 app.include_router(search.router)
 app.include_router(geography.router)
+app.include_router(chat.router)
