@@ -25,4 +25,4 @@ class Embedding(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     chunk_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('ai_chunk.id'))
     model_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('ai_embedding_model.id'))
-    vector = Column(Vector(1536))
+    vector = Column(Vector()) # Dynamic dimensions supported
