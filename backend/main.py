@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 import uuid
 import time
-from routers import sources, analytics, search, geography, chat, data_quality
+from routers import sources, analytics, search, geography, chat, data_quality, elections, representatives
 
 app = FastAPI(title="LokTathya API", version="1.0.0", openapi_url="/api/v1/openapi.json")
 
@@ -26,3 +26,5 @@ app.include_router(search.router)
 app.include_router(geography.router)
 app.include_router(chat.router)
 app.include_router(data_quality.router)
+app.include_router(elections.router)
+app.include_router(representatives.router)
