@@ -1,0 +1,21 @@
+# Implementation Roadmap
+
+- PHASE 0: Discovery
+- PHASE 1: Documentation and architecture
+- PHASE 2: Data model
+- PHASE 3: Source registry
+- PHASE 4: Docker infrastructure
+- PHASE 5: Ingestion framework
+- PHASE 6: Geospatial engine
+- PHASE 7: Public API
+- PHASE 8: Stitch design system
+- PHASE 9: Frontend foundation
+- PHASE 10: Search
+- PHASE 11: Document intelligence
+- PHASE 12: RAG/Civic AI
+- PHASE 13: Election analytics
+- PHASE 14: Project/finance analytics
+- PHASE 15: Reports
+- PHASE 16: Security hardening
+- PHASE 17: Performance/load testing
+- PHASE 18: Public release
