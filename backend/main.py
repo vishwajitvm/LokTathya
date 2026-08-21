@@ -6,6 +6,10 @@ from routers import sources, analytics, search, geography, chat, data_quality, e
 
 app = FastAPI(title="LokTathya API", version="1.0.0", openapi_url="/api/v1/openapi.json")
 
+@app.get('/health')
+def health():
+    return {'status': 'healthy'}
+
 @app.middleware("http")
 async def add_request_id_and_trace(request: Request, call_next):
     request_id = str(uuid.uuid4())
@@ -32,3 +36,5 @@ app.include_router(coverage.router)
 app.include_router(ingestion.router)
 app.include_router(intelligence.router)
 app.include_router(geographies_history.router)
+
+
