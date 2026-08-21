@@ -1,0 +1,142 @@
+version: '3.8'
+
+services:
+  postgres:
+    build:
+      context: ./database
+    container_name: loktathya_postgres
+    environment:
+      POSTGRES_USER: \
+      POSTGRES_PASSWORD: \
+      POSTGRES_DB: \
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \ -d \"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - loktathya_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: loktathya_redis
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - loktathya_net
+
+  minio:
+    image: minio/minio:RELEASE.2024-05-10T01-41-38Z
+    container_name: loktathya_minio
+    environment:
+      MINIO_ROOT_USER: \
+      MINIO_ROOT_PASSWORD: \
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - loktathya_net
+
+  backend:
+    build:
+      context: ./backend
+    container_name: loktathya_backend
+    volumes:
+      - ./backend:/app
+    environment:
+      DATABASE_URL: postgresql://\:\@postgres:5432/\
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: \
+      MINIO_SECRET_KEY: \
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - loktathya_net
+
+  worker:
+    build:
+      context: ./backend
+    container_name: loktathya_worker
+    volumes:
+      - ./backend:/app
+    command: ["celery", "-A", "core.celery_app", "worker", "--loglevel=info"]
+    environment:
+      DATABASE_URL: postgresql://\:\@postgres:5432/\
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: \
+      MINIO_SECRET_KEY: \
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - loktathya_net
+
+  scheduler:
+    build:
+      context: ./backend
+    container_name: loktathya_scheduler
+    volumes:
+      - ./backend:/app
+    command: ["celery", "-A", "core.celery_app", "beat", "--loglevel=info"]
+    environment:
+      DATABASE_URL: postgresql://\:\@postgres:5432/\
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - loktathya_net
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: loktathya_frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - loktathya_net
+
+networks:
+  loktathya_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
