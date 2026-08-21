@@ -1,0 +1,5 @@
+graph TD
+    Client --> API
+    API --> DB[(PostgreSQL)]
+    API --> Redis[(Redis Cache)]
+    Worker --> Celery

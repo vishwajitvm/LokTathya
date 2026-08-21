@@ -1,2 +1,8 @@
 graph TD
- User --> System
+    Sources[Official Sources] --> Registry[Source Registry]
+    Registry --> Ingestion[Batch Ingestion]
+    Ingestion --> Parsing
+    Parsing --> Postgres[(Canonical PostGIS Data)]
+    Parsing --> MinIO[(Raw Artifacts)]
+    Postgres --> Backend[FastAPI Backend]
+    Backend --> Frontend[Next.js Frontend]
