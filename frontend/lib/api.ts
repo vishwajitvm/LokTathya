@@ -1,17 +1,22 @@
 export const fetchApi = async (endpoint: string, options?: RequestInit) => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
-  const response = await fetch(`${baseUrl}${endpoint}`, {
+  const response = await fetch(`/api/v1${endpoint}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
       ...options?.headers,
     },
   });
-  
+
+  const requestId = response.headers.get('X-Request-ID');
+
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'An API error occurred');
+    const message = errorData.detail || errorData.message || 'An API error occurred';
+    const error = new Error(message) as Error & { requestId?: string; status?: number };
+    error.requestId = requestId || errorData.request_id || 'UNKNOWN';
+    error.status = response.status;
+    throw error;
   }
-  
+
   return response.json();
 };

@@ -1,4 +1,8 @@
-# Node / Next.js
+# ==========================================
+# LOKTATHYA — PROFESSIONAL GITIGNORE
+# ==========================================
+
+# --- Node / Next.js ---
 node_modules/
 .next/
 out/
@@ -11,33 +15,45 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+lerna-debug.log*
+.eslintcache
+.stylelintcache
 
-# Python
+# --- Python ---
 __pycache__/
 *.py[cod]
+*$py.class
 *.pyo
 *.pyd
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-.coverage
-.coverage.*
-htmlcov/
 .tox/
 .nox/
 .venv/
 venv/
 env/
 ENV/
-
-# Python packaging
-*.egg-info/
+lib/
+lib64/
+parts/
+sdist/
+var/
+eggs/
+develop-eggs/
+downloads/
+eggs/
 .eggs/
+*.egg-info/
+.installed.cfg
 *.egg
-dist/
-build/
+MANIFEST
 
-# Environment / secrets
+# --- Celery ---
+celerybeat-schedule
+celerybeat.pid
+
+# --- Environment & Credentials ---
 .env
 .env.local
 .env.development
@@ -46,60 +62,84 @@ build/
 .env.test.local
 .env.production
 .env.production.local
+.env*.local
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
 
-# IMPORTANT:
-# Do NOT ignore example environment files.
+# Explicit exception: Never ignore example env files
 !.env.example
 !**/.env.example
 
-# Docker
-docker-compose.override.yml
-
-# Logs
+# --- Logs & Runtime ---
 *.log
 logs/
-
-# Runtime data
 *.pid
 *.pid.lock
 *.seed
+*.lock
 
-# Database/local runtime files
+# --- Database & Local Storage ---
 *.sqlite
 *.sqlite3
 *.db
-
-# Temporary files
-tmp/
-temp/
-.tmp/
-
-# Coverage
-coverage/
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*.swn
-
-# OS
-.DS_Store
-Thumbs.db
-Desktop.ini
-
-# Test artifacts
-playwright-report/
-test-results/
-.nyc_output/
-
-# Generated files
-generated/
-generated-data/
-
-# Local Docker volumes if accidentally created
-docker-data/
 postgres_data/
 redis_data/
 minio_data/
+docker-data/
+data/
+db_backups/
+
+# --- Operating System & Temp Files ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+[Dd]esktop.ini
+$RECYCLE.BIN/
+tmp/
+temp/
+.tmp/
+*.swp
+*.swo
+*~
+\#*\#
+.*.sw?
+
+# --- IDEs & Editors ---
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.project
+.classpath
+.settings/
+.project
+.project.xml
+
+# --- Testing & Quality Reports ---
+coverage/
+htmlcov/
+.coverage
+.coverage.*
+.nyc_output/
+playwright-report/
+test-results/
+.lighthouse/
+.axe/
+
+# --- Antigravity Custom Brain Artifacts ---
+.gemini/
+brain/
+**/brain/
+**/tasks/
+**/tasks/*.log

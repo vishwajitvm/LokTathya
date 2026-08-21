@@ -1,29 +1,39 @@
 from pydantic import BaseModel, HttpUrl
-from typing import Optional, List
+from typing import Optional
 from datetime import datetime
 from uuid import UUID
 
+
 class SourceBase(BaseModel):
-    public_id: str
-    authority: str
-    status: str
+    name: str
+    category: Optional[str] = None
+    official_url: Optional[str] = None
+
 
 class SourceCreate(SourceBase):
     pass
 
+
 class SourceResponse(SourceBase):
     id: UUID
+    last_fetched: Optional[datetime] = None
+
     class Config:
         from_attributes = True
 
+
 class EndpointBase(BaseModel):
-    official_url: HttpUrl
+    url: str
+    method: str = "GET"
+
 
 class EndpointCreate(EndpointBase):
     source_id: UUID
 
+
 class EndpointResponse(EndpointBase):
     id: UUID
     source_id: UUID
+
     class Config:
         from_attributes = True
