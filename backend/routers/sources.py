@@ -34,6 +34,33 @@ def list_sources(skip: int = 0, limit: int = 100, db: Session = Depends(get_db))
         logger.error("Source listing FAILED", error=str(e))
         raise
 
+@router.get("/{source_id}", response_model=SourceResponse)
+def get_source(source_id: uuid.UUID, db: Session = Depends(get_db)):
+    logger.info("GET /api/v1/sources/{source_id} – Fetching data source", source_id=str(source_id))
+    result = SourceService.get_source(db, source_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Source not found")
+    return result
+
+@router.get("/{source_id}/endpoints")
+def get_source_endpoints(source_id: uuid.UUID, db: Session = Depends(get_db)):
+    logger.info("GET /api/v1/sources/{source_id}/endpoints – Listing source endpoints", source_id=str(source_id))
+    source = SourceService.get_source(db, source_id)
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found")
+    endpoints = db.query(SourceEndpoint).filter(SourceEndpoint.source_id == source_id).all()
+    return [
+        {
+            "id": str(ep.id),
+            "url": ep.url,
+            "method": ep.method,
+            "status": ep.status,
+            "redirect_url": ep.redirect_url,
+            "observed_at": ep.observed_at
+        }
+        for ep in endpoints
+    ]
+
 @router.get("/{source_id}/history")
 def get_source_history(source_id: uuid.UUID, db: Session = Depends(get_db)):
     # Mocking response

@@ -1,7 +1,10 @@
 from sqlalchemy import Column, String, DateTime, ForeignKey, Text, Enum, JSON, Integer, Boolean, UniqueConstraint
-from sqlalchemy.orm import relationship
-from models.base import BaseModel
+from sqlalchemy.orm import relationship, Mapped, mapped_column
+from sqlalchemy.dialects.postgresql import UUID
+from models.base import Base
 import enum
+import uuid
+from datetime import datetime
 
 class PageType(str, enum.Enum):
     HOME = "HOME"
@@ -29,13 +32,14 @@ class ChangeType(str, enum.Enum):
     STRUCTURAL_CHANGE = "STRUCTURAL_CHANGE"
     UNKNOWN_CHANGE = "UNKNOWN_CHANGE"
 
-class WebPage(BaseModel):
+class WebPage(Base):
     """
     A Web Page is a first-class identity in LokTathya.
     It can be a source of truth, an index of documents, or a dataset host.
     """
     __tablename__ = 'src_web_page'
 
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     source_id = Column(ForeignKey('src_source.id', ondelete='CASCADE'), nullable=False, index=True)
     endpoint_id = Column(ForeignKey('src_endpoint.id', ondelete='SET NULL'), nullable=True, index=True)
     
@@ -52,8 +56,8 @@ class WebPage(BaseModel):
     
     # Temporal tracking
     published_at = Column(DateTime(timezone=True), nullable=True)
-    first_seen_at = Column(DateTime(timezone=True), nullable=False)
-    last_seen_at = Column(DateTime(timezone=True), nullable=False)
+    first_seen_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    last_seen_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
     last_changed_at = Column(DateTime(timezone=True), nullable=True)
     
     # Conditional HTTP tracking
@@ -68,12 +72,13 @@ class WebPage(BaseModel):
         UniqueConstraint('source_id', 'canonical_url', name='uq_web_page_canonical_url'),
     )
 
-class WebPageVersion(BaseModel):
+class WebPageVersion(Base):
     """
     Immutable snapshots of materially changed web pages.
     """
     __tablename__ = 'src_web_page_version'
     
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     page_id = Column(ForeignKey('src_web_page.id', ondelete='CASCADE'), nullable=False, index=True)
     
     version_number = Column(Integer, nullable=False)
@@ -82,7 +87,7 @@ class WebPageVersion(BaseModel):
     
     change_type = Column(Enum(ChangeType), default=ChangeType.UNKNOWN_CHANGE)
     
-    retrieved_at = Column(DateTime(timezone=True), nullable=False)
+    retrieved_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
     
     storage_path = Column(String(1024), nullable=False)
     normalized_path = Column(String(1024), nullable=False)
@@ -92,12 +97,13 @@ class WebPageVersion(BaseModel):
     page = relationship('WebPage', back_populates='versions')
     tables = relationship('ExtractedTable', back_populates='web_version', cascade='all, delete-orphan')
 
-class ExtractedTable(BaseModel):
+class ExtractedTable(Base):
     """
     Structured extraction of HTML tables from WebPages or Documents.
     """
     __tablename__ = 'src_extracted_table'
     
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     web_version_id = Column(ForeignKey('src_web_page_version.id', ondelete='CASCADE'), nullable=True, index=True)
     document_version_id = Column(ForeignKey('src_content_version.id', ondelete='CASCADE'), nullable=True, index=True)
     

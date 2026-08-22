@@ -23,6 +23,7 @@ from routers import (
     sources, analytics, search, geography, chat,
     data_quality, elections, representatives,
     coverage, ingestion, intelligence, geographies_history,
+    web_pages, documents
 )
 
 # ── App Initialization ───────────────────────────────────────────────
@@ -78,5 +79,7 @@ app.include_router(coverage.router)
 app.include_router(ingestion.router)
 app.include_router(intelligence.router)
 app.include_router(geographies_history.router)
+app.include_router(web_pages.router)
+app.include_router(documents.router)
 
-logger.info("All 12 API routers registered successfully")
+logger.info("All 14 API routers registered successfully")

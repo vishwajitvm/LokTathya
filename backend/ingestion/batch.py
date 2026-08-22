@@ -20,6 +20,15 @@ class IngestionBatchManager:
         if not endpoint:
             return {"status": "ERROR", "message": "Endpoint not found"}
 
+        # Retrieve last successful fetch event for conditional headers
+        last_event = self.db.query(FetchEvent).filter(
+            FetchEvent.endpoint_id == endpoint_id,
+            FetchEvent.status_code == 200
+        ).order_by(FetchEvent.fetched_at.desc()).first()
+
+        etag = last_event.etag if last_event else None
+        last_mod = last_event.last_modified if last_event else None
+
         fetch_event = FetchEvent(
             run_id=run_id,
             endpoint_id=endpoint.id,
@@ -29,26 +38,44 @@ class IngestionBatchManager:
         self.db.add(fetch_event)
 
         try:
-            # We would use a session with proper headers (ETag, If-Modified-Since)
-            headers = {} # Load previous ETag if available
-            response = requests.get(endpoint.url, headers=headers, timeout=10, allow_redirects=True)
+            import asyncio
+            from core.http_client import ResilientHTTPClient
             
-            fetch_event.status_code = response.status_code
-            fetch_event.content_length = len(response.content) if response.content else 0
-            fetch_event.etag = response.headers.get('ETag')
-            fetch_event.last_modified = response.headers.get('Last-Modified')
+            client = ResilientHTTPClient(timeout=10)
+            result = asyncio.run(client.fetch(
+                endpoint.url, 
+                etag=etag, 
+                last_modified=last_mod
+            ))
             
-            if response.history:
-                fetch_event.redirect_chain = [{"url": h.url, "status": h.status_code} for h in response.history]
+            if result["status"] == "NOT_MODIFIED":
+                fetch_event.status_code = 304
+                self.db.commit()
+                return {"status": "SUCCESS", "fetch_event_id": fetch_event.id, "message": "Content not modified"}
                 
-            if response.status_code == 200:
+            elif result["status"] == "SUCCESS":
+                fetch_event.status_code = result["status_code"]
+                fetch_event.content_length = len(result["content"])
+                fetch_event.etag = result["headers"].get("ETag")
+                fetch_event.last_modified = result["headers"].get("Last-Modified")
+                
                 import hashlib
-                content_hash = hashlib.sha256(response.content).hexdigest()
+                content_hash = hashlib.sha256(result["content"]).hexdigest()
                 fetch_event.content_hash = content_hash
-                # Document logic could be triggered here via PDFProcessor
-            
-            self.db.commit()
-            return {"status": "SUCCESS", "fetch_event_id": fetch_event.id}
+                
+                # In real scenario we would write to MinIO raw storage here:
+                from storage.minio_client import MinIOStorageService
+                storage = MinIOStorageService()
+                storage_path = f"raw/endpoint_{endpoint.id}/{content_hash}"
+                storage.put(storage_path, result["content"], content_type=result["headers"].get("Content-Type"))
+                
+                self.db.commit()
+                return {"status": "SUCCESS", "fetch_event_id": fetch_event.id}
+            else:
+                fetch_event.status_code = result.get("status_code", 500)
+                fetch_event.error_message = result.get("error", "Fetch failed")
+                self.db.commit()
+                return {"status": "FAILURE", "error": result.get("error"), "fetch_event_id": fetch_event.id}
 
         except Exception as e:
             fetch_event.error_message = str(e)
