@@ -1,0 +1,6 @@
+graph TD
+    API[API Trigger] --> Task[Celery Task]
+    Task --> Queue[Redis Queue]
+    Queue --> Fetcher[Fetch Worker]
+    Fetcher --> Client[Resilient HTTP Client]
+    Client --> MinIO[(MinIO Raw Storage)]

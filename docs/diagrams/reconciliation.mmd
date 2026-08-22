@@ -1,0 +1,4 @@
+graph TD
+    Obs[Observations] --> Compare[Conflict checker]
+    Compare -->|Consistent| Consistent[Status: CONSISTENT]
+    Compare -->|Discrepancy| Conflicting[Status: CONFLICTING]

@@ -1,0 +1,4 @@
+graph TD
+    Request[GET /api/v1/representatives] --> Person[Query rep_person]
+    Person --> Term[Query rep_term]
+    Term --> Output[Profiles list with current house, constituency, and party]

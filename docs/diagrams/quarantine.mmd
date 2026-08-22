@@ -1,0 +1,5 @@
+graph TD
+    Fail[Parser Crash / Size Violation / SSRF Block] --> Quarantine[Store in src_quarantine table]
+    Quarantine --> Review[API Review endpoints]
+    Review --> Retry[Mark RETRY_PENDING]
+    Review --> Resolve[Mark RESOLVED]

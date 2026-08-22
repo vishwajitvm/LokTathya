@@ -1,0 +1,4 @@
+graph TD
+    Request[GET /api/v1/projects] --> Project[Query proj_project]
+    Project --> Work[Query works, tenders, and contracts]
+    Work --> Output[List projects with construction work and contractor details]

@@ -1,0 +1,5 @@
+graph TD
+    Scheduler[Celery Beat Scheduler] --> Broker[Redis Message Broker]
+    Broker --> WorkerPool[Celery Worker Auto Scale Pool]
+    WorkerPool --> DB[(PostgreSQL Cluster)]
+    WorkerPool --> MinIO[(MinIO Object Storage)]

@@ -1,0 +1,6 @@
+graph TD
+    RawPeriod[Raw Period string: 2024-25] --> Regex[Regex Match]
+    Regex --> FY[FINANCIAL_YEAR start/end dates]
+    Regex --> CY[CALENDAR_YEAR start/end dates]
+    FY --> Output[Explicit validity start & end timestamps]
+    CY --> Output

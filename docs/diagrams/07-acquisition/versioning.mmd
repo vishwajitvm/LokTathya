@@ -1,0 +1,4 @@
+graph TD
+    Fetch[Fetched content] --> HashCheck{Byte Hash / Semantic Hash changed?}
+    HashCheck -- Yes --> NewVersion[Create new src_content_version]
+    HashCheck -- No --> Keep[Map to existing version]

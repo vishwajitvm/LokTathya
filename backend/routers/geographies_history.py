@@ -8,9 +8,9 @@ router = APIRouter(prefix="/api/v1/geographies", tags=["Historical Geography"])
 @router.get("/history")
 def get_geographic_history():
     logger.info("GET /api/v1/geographies/history – Fetching geographic history timeline")
-    logger.debug("Geographic history endpoint invoked (stub)")
-    logger.info("Geographic history returned", status="ok")
-    return {"status": "ok"}
+    events = DelimitationManager.get_delimitation_events()
+    logger.info("Geographic history returned", count=len(events))
+    return {"status": "ok", "events": events}
 
 @router.get("/comparability")
 def check_comparability(geo_a: str, geo_b: str):

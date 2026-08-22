@@ -8,3 +8,6 @@ from .election import *
 from .project import *
 from .finance import *
 from .ai import *
+from .versioning import ExtractedTextVersion, OCRVersion, ChunkVersion, EmbeddingVersion
+from .web_page import WebPage, WebPageVersion, ExtractedTable
+from .observation import Observation

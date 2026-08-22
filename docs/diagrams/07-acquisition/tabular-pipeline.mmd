@@ -1,0 +1,5 @@
+graph TD
+    Tab[Tabular Document] --> Detector[Format Detector]
+    Detector --> CSV[CSVParser]
+    Detector --> XLSX[XLSXParser]
+    XLSX --> XLSM[Macro Detection: No VBA execute]

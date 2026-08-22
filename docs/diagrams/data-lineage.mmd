@@ -1,0 +1,5 @@
+graph TD
+    Raw[Raw Ingest Source] --> Parse[Extract Raw Observation]
+    Parse --> Norm[Type Normalization & Entity Match]
+    Norm --> Fact[Create CanonicalFact]
+    Fact --> Trace[Track via prov_claim & prov_evidence mappings]

@@ -1,0 +1,4 @@
+graph TD
+    Fetch[Outbound request] -->|Success| Healthy[State: HEALTHY]
+    Fetch -->|Timeout/429| Degraded[State: DEGRADED]
+    Fetch -->|Permanent 404| Retired[State: RETIRED]

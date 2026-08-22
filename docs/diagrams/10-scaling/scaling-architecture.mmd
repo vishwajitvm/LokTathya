@@ -1,0 +1,8 @@
+graph TD
+    API[API Service] --> LoadBalancer[Load Balancer]
+    LoadBalancer --> W1[API Worker 1]
+    LoadBalancer --> W2[API Worker 2]
+    Celery[Celery Orchestrator] --> Q1[fetch queue]
+    Celery --> Q2[heavy processing queue]
+    Q1 --> FWorker[Fetch Workers]
+    Q2 --> PWorker[Parser Workers]

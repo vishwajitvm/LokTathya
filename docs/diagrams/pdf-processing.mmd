@@ -1,0 +1,6 @@
+graph TD
+    PDF[PDF file] --> Reader[PdfReader pages]
+    Reader --> Text[Extract raw text]
+    Text --> Quality[Text Quality Check]
+    Quality -->|Poor/Scanned| OCR[isolated Celery OCR queue]
+    Quality -->|Pass| Store[Store PDF observation]

@@ -1,0 +1,5 @@
+graph TD
+    Raw[Raw PDF / XLS / CSV] --> Limits[Size / Page Limits Check]
+    Limits --> Safe[Pass Safety Constraints]
+    Safe --> Parser[Format Specific Parser]
+    Parser --> Output[Standardized JSON output]

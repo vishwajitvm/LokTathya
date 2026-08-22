@@ -1,0 +1,7 @@
+graph LR
+    REQ[Request ID] --> API[API Layer]
+    API --> TASK[Task ID]
+    TASK --> SRC[Source ID]
+    SRC --> END[Endpoint ID]
+    END --> DOC[Document ID]
+    DOC --> VER[Content Version ID]

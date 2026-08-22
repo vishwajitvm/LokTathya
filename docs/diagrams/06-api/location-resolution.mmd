@@ -1,0 +1,5 @@
+graph TD
+    Coords[Latitude, Longitude] --> Query[ST_Contains Query]
+    Query --> Check{Matches found?}
+    Check -- Yes --> Hierarchy[Build boundary hierarchy: State / District / Constituency]
+    Check -- No --> Error[NOT_COMPUTABLE error]

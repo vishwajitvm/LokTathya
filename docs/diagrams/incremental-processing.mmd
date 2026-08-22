@@ -1,0 +1,4 @@
+graph TD
+    Trigger[New Version Ingested] --> HashCheck[Check file hash / ETag change]
+    HashCheck --> Diff[Process only changed observations]
+    Diff --> Sync[Update affected CanonicalFacts & Claims]

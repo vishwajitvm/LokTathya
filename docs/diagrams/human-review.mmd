@@ -1,0 +1,5 @@
+graph TD
+    Unresolved[Low confidence / Context mismatch] --> ReviewQueue[Register status HUMAN_REVIEW in sys_entity_resolution]
+    ReviewQueue --> Portal[Expose on GET api/v1/entity-resolution/reviews]
+    Portal --> Decision[Reviewer Decision: Confirm / Match ID]
+    Decision --> Confirmed[Update status to CONFIRMED and link candidate_id]

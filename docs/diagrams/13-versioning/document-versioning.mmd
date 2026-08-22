@@ -1,0 +1,12 @@
+graph TD
+    DI[Document Identity] --> FE[Fetch Event]
+    FE --> RH[Raw Hash]
+    RH --> NH[Normalized Hash]
+    NH --> CH[Content Hash]
+    CH --> VC[Version Comparison]
+    VC -->|No Change| UN[Unchanged]
+    VC -->|Byte Change| CHG[Changed]
+    VC -->|Metadata Change| COR[Corrected]
+    VC -->|Updated Text| REV[Revised]
+    VC -->|Tombstone| WD[Withdrawn]
+    VC -->|Pointer Change| REP[Replaced]

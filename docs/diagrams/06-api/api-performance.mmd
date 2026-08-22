@@ -1,0 +1,4 @@
+graph TD
+    Query[FastAPI DB Query] --> Eager[Eager loading of terms, parties, and geo relations]
+    Eager --> Pool[SQLAlchemy connection pooling]
+    Pool --> Output[Under 100ms response latencies]

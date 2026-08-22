@@ -12,7 +12,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d loktathya"]
       interval: 5s
@@ -88,7 +88,7 @@ services:
     container_name: loktathya_worker
     volumes:
       - ./backend:/app
-    command: ["celery", "-A", "core.celery_app", "worker", "--loglevel=info"]
+    command: ["celery", "-A", "core.celery_app", "worker", "-Q", "celery,source_discovery,fetch,html,pdf,ocr,tabular,gis,normalization,entity_resolution,reconciliation", "--loglevel=info"]
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:password@postgres:5432/loktathya}
       REDIS_URL: redis://redis:6379/0

@@ -1,0 +1,5 @@
+graph TD
+    Request[HTTP Request] --> CacheCheck{Cache Hit in Redis?}
+    CacheCheck -- Yes --> Return[Return cached JSON response]
+    CacheCheck -- No --> DB[Execute PostgreSQL query & populate cache]
+    DB --> Return

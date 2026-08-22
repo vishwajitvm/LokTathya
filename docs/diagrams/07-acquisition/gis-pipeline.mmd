@@ -1,0 +1,4 @@
+graph TD
+    GIS[GeoJSON/KML/Shapefiles] --> GISParser[GISParser]
+    GISParser --> Validate[Boundary intersection & coordinate normalization]
+    Validate --> Output[Database geometry entities]

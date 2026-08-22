@@ -1,0 +1,4 @@
+graph TD
+    Crash[Worker / DB Crash] --> State[Re-queue pending tasks]
+    State --> Health[Celery inspect liveness]
+    Health --> Resume[Resume safe reprocessing]

@@ -1,0 +1,8 @@
+graph TD
+    URL[URL] --> VAL[Domain Validation]
+    VAL --> DNS[DNS Resolution]
+    DNS --> SSRF[SSRF Check]
+    SSRF --> RED[Redirect Validation]
+    RED --> FETCH[Resilient Fetch]
+    FETCH --> LIMIT[Content size/type Check]
+    LIMIT --> STORE[MinIO Raw Storage]

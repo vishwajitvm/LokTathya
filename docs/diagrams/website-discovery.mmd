@@ -1,0 +1,7 @@
+graph TD
+    Web[Webpage Ingestion] --> Parse[HTML Parsing]
+    Parse --> Links[Extract Outbound Links]
+    Links --> Filter[Domain & SSRF Filter]
+    Filter --> Classify[Classify: Document vs Page]
+    Classify --> Doc[PDF, CSV, XLSX]
+    Classify --> Page[Subpage link]

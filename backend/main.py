@@ -23,6 +23,7 @@ from routers import (
     sources, analytics, search, geography, chat,
     data_quality, elections, representatives,
     coverage, ingestion, intelligence, geographies_history,
+    web_pages, documents, discovery, quarantine, entities, location, projects, finance
 )
 
 # ── App Initialization ───────────────────────────────────────────────
@@ -57,7 +58,7 @@ async def on_startup():
         routers=[
             "sources", "analytics", "search", "geography", "chat",
             "data_quality", "elections", "representatives", "coverage",
-            "ingestion", "intelligence", "geographies_history",
+            "ingestion", "intelligence", "geographies_history", "entities"
         ],
     )
 
@@ -78,5 +79,13 @@ app.include_router(coverage.router)
 app.include_router(ingestion.router)
 app.include_router(intelligence.router)
 app.include_router(geographies_history.router)
+app.include_router(web_pages.router)
+app.include_router(documents.router)
+app.include_router(discovery.router)
+app.include_router(quarantine.router)
+app.include_router(entities.router)
+app.include_router(location.router)
+app.include_router(projects.router)
+app.include_router(finance.router)
 
-logger.info("All 12 API routers registered successfully")
+logger.info("All 20 API routers registered successfully")

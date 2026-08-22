@@ -1,0 +1,4 @@
+graph TD
+    PDF[Scanned PDF] --> CeleryOCR[Celery OCR Queue]
+    CeleryOCR --> Tesseract[Tesseract OCR Provider]
+    Tesseract --> Text[Extracted Text observations]

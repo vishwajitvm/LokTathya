@@ -1,0 +1,3 @@
+graph TD
+    Trigger[Celery Ingestion Batch] --> Queues[Separate queues: fetch, pdf, ocr, tabular, gis]
+    Queues --> Workers[Isolated execution context]

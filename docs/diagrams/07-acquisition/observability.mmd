@@ -1,0 +1,3 @@
+graph TD
+    Logger[TraceNestLogger] --> Trace[Correlation-ID, batch_id, source_id logs]
+    Trace --> LogAggregator[Docker container stdout/stderr tracing]

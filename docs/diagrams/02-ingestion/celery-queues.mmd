@@ -1,0 +1,20 @@
+graph TD
+    API[FastAPI] --> REDIS[Redis]
+    REDIS --> CELERY[Celery]
+    subgraph Queues
+        CELERY --> QF[fetch]
+        CELERY --> QH[html]
+        CELERY --> QP[pdf]
+        CELERY --> QO[ocr]
+        CELERY --> QT[tabular]
+        CELERY --> QG[gis]
+        CELERY --> QN[normalization]
+        CELERY --> QE[entity_resolution]
+        CELERY --> QR[reconciliation]
+        CELERY --> QEM[embedding]
+        CELERY --> QM[maintenance]
+    end
+    QF --> WORKERS[Workers]
+    QH --> WORKERS
+    QP --> WORKERS
+    WORKERS --> DB[PostgreSQL / MinIO]

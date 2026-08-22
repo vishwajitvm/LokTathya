@@ -1,0 +1,4 @@
+graph TD
+    Trigger[Replay Run Trigger] --> Query[Query raw MinIO storage path]
+    Query --> Parse[Re-run updated Parse & Normalize logic]
+    Parse --> DB[Insert new observations]

@@ -1,0 +1,5 @@
+graph TD
+    Client[Client / UI] --> Router[FastAPI Router Layer]
+    Router --> Service[Domain Service Layer]
+    Service --> Repo[Repository / SQL Alchemy Layer]
+    Repo --> DB[(PostgreSQL + PostGIS)]

@@ -1,0 +1,5 @@
+graph TD
+    Trigger[POST /runs] --> Crawler[Sitemap Index Crawler]
+    Crawler --> Candidates[src_endpoint status=CANDIDATE]
+    Candidates --> Approve[POST /candidates/{id}/approve]
+    Approve --> Active[src_endpoint status=ACTIVE]

@@ -1,0 +1,4 @@
+graph TD
+    Fail[Parse error / Security limit hit] --> Quarantine[src_quarantine]
+    Quarantine --> Resolve[POST /quarantine/{id}/resolve]
+    Resolve --> Restored[Retried or deprecated]

@@ -1,0 +1,7 @@
+graph TD
+    Endpoint[Endpoint Metadata] --> Discover[discover]
+    Discover --> Fetch[fetch]
+    Fetch --> Classify[classify]
+    Classify --> Parse[parse]
+    Parse --> Normalize[normalize]
+    Normalize --> Emit[emit_observations]
