@@ -73,6 +73,7 @@ class SourceEndpoint(Base):
     last_checked: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     last_success: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     last_failure: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+    next_scheduled_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     checksum: Mapped[str] = mapped_column(String(256), nullable=True)
     source = relationship("Source")
 

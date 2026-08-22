@@ -101,6 +101,8 @@ class PDFParser(BaseParser):
             try:
                 reader = PdfReader(io.BytesIO(content))
                 page_count = len(reader.pages)
+                if page_count > 500:
+                    return self._build_result(meta=meta, structured_content={}, status="ERROR: PDF page count exceeds maximum limit (500 pages)", parser_name="PDFParser")
                 for page in reader.pages:
                     txt = page.extract_text() or ""
                     text_runs.append(txt)
@@ -120,6 +122,9 @@ class PDFParser(BaseParser):
 
 class CSVParser(BaseParser):
     def parse(self, content: bytes, meta: Dict[str, Any]) -> Dict[str, Any]:
+        if len(content) > 50 * 1024 * 1024:
+            return self._build_result(meta=meta, structured_content={}, status="ERROR: File size exceeds maximum limit (50MB)", parser_name="CSVParser")
+
         # Detect encoding
         encoding = FormatDetector._detect_csv_encoding(content)
         csv_str = content.decode(encoding, errors='ignore')
@@ -135,7 +140,9 @@ class CSVParser(BaseParser):
         
         rows = []
         reader = csv.reader(io.StringIO(csv_str), delimiter=delimiter)
-        for row in reader:
+        for idx, row in enumerate(reader):
+            if idx >= 100000:
+                break
             rows.append(row)
             
         headers = rows[0] if rows else []
@@ -157,20 +164,29 @@ class CSVParser(BaseParser):
 
 class XLSXParser(BaseParser):
     def parse(self, content: bytes, meta: Dict[str, Any]) -> Dict[str, Any]:
+        if len(content) > 50 * 1024 * 1024:
+            return self._build_result(meta=meta, structured_content={}, status="ERROR: File size exceeds maximum limit (50MB)", parser_name="XLSXParser")
+
         sheets = {}
         if openpyxl:
             try:
                 wb = openpyxl.load_workbook(io.BytesIO(content), data_only=True)
+                total_rows = 0
                 for sheet_name in wb.sheetnames:
                     ws = wb[sheet_name]
                     sheet_rows = []
                     for row in ws.iter_rows(values_only=True):
+                        total_rows += 1
+                        if total_rows >= 100000:
+                            break
                         # Convert cells to string or primitives
                         sheet_rows.append([str(cell) if cell is not None else "" for cell in row])
                     sheets[sheet_name] = {
                         "headers": sheet_rows[0] if sheet_rows else [],
                         "rows": sheet_rows[1:] if len(sheet_rows) > 1 else []
                     }
+                    if total_rows >= 100000:
+                        break
             except Exception as e:
                 return self._build_result(meta=meta, structured_content={}, status=f"ERROR: {str(e)}", parser_name="XLSXParser")
         else:
@@ -228,6 +244,12 @@ class GISParser(BaseParser):
                 
             elif detected_format == "KMZ":
                 with zipfile.ZipFile(io.BytesIO(content)) as z:
+                    total_size = sum(info.file_size for info in z.infolist())
+                    if total_size > 200 * 1024 * 1024:
+                        return self._build_result(meta=meta, structured_content={}, status="ERROR: Decompressed archive size exceeds maximum limit (200MB)", parser_name="GISParser")
+                    if len(z.infolist()) > 1000:
+                        return self._build_result(meta=meta, structured_content={}, status="ERROR: Archive contains too many files (max 1000)", parser_name="GISParser")
+
                     for name in z.namelist():
                         if ".." in name or name.startswith("/") or name.startswith("\\"):
                             return self._build_result(meta=meta, structured_content={}, status="ERROR: Malicious path traversal inside archive (Zip Slip Prevention)", parser_name="GISParser")
@@ -249,6 +271,12 @@ class GISParser(BaseParser):
                         
             elif detected_format in ["SHAPEFILE_ARCHIVE", "ZIP"]:
                 with zipfile.ZipFile(io.BytesIO(content)) as z:
+                    total_size = sum(info.file_size for info in z.infolist())
+                    if total_size > 200 * 1024 * 1024:
+                        return self._build_result(meta=meta, structured_content={}, status="ERROR: Decompressed archive size exceeds maximum limit (200MB)", parser_name="GISParser")
+                    if len(z.infolist()) > 1000:
+                        return self._build_result(meta=meta, structured_content={}, status="ERROR: Archive contains too many files (max 1000)", parser_name="GISParser")
+
                     names = z.namelist()
                     for name in names:
                         if ".." in name or name.startswith("/") or name.startswith("\\"):

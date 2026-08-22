@@ -102,12 +102,34 @@ def get_document_versions(document_id: uuid.UUID, observed_at: Optional[str] = Q
 
 @router.get("/documents/{document_id}/diff")
 def get_document_diff(document_id: uuid.UUID, v1: int, v2: int, db: Session = Depends(get_db)):
-    return {
-        "status": "MODIFIED",
-        "diff": {
-            "text_diff": {"similarity_ratio": 0.8},
-            "table_diff": {"added": [], "removed": []},
-            "pages_added": 0,
-            "pages_removed": 0
-        }
-    }
+    doc = db.query(Document).get(document_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+        
+    cv1 = db.query(ContentVersion).filter(ContentVersion.document_id == document_id, ContentVersion.version_number == v1).first()
+    cv2 = db.query(ContentVersion).filter(ContentVersion.document_id == document_id, ContentVersion.version_number == v2).first()
+    
+    if not cv1 or not cv2:
+        raise HTTPException(status_code=404, detail="One or both content versions not found")
+
+    # Load content from MinIO and run real diff check
+    from storage.minio_client import MinIOStorageService
+    from ingestion.diff_engine import DocumentDiffEngine
+    
+    storage = MinIOStorageService()
+    text_a = ""
+    text_b = ""
+    
+    try:
+        if cv1.storage_path and storage.exists(cv1.storage_path):
+            data_a = storage.get(cv1.storage_path)
+            text_a = data_a.decode('utf-8', errors='ignore') if data_a else ""
+        if cv2.storage_path and storage.exists(cv2.storage_path):
+            data_b = storage.get(cv2.storage_path)
+            text_b = data_b.decode('utf-8', errors='ignore') if data_b else ""
+    except Exception as e:
+        logger.error("Failed to load version content for diffing", error=str(e))
+
+    engine = DocumentDiffEngine()
+    diff_res = engine.diff_documents({"text": text_a}, {"text": text_b})
+    return diff_res
