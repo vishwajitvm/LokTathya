@@ -1,0 +1,5 @@
+graph TD
+    RawGeo[Raw Geographic String] --> Exact[Exact Match in DB]
+    Exact --> Fuzzy[Fuzzy Match SequenceMatcher]
+    Fuzzy --> Context[Context check: State / District containment validation]
+    Context --> Result[RESOLVED / HUMAN_REVIEW]

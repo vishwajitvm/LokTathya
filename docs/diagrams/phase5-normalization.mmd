@@ -1,0 +1,5 @@
+graph TD
+    Raw[Raw Value / String] --> Numeric[numeric normalizer: lakh / crore / ₹ / accounting parentheses]
+    Numeric --> Date[date normalizer: DD-MM-YYYY / ISO]
+    Date --> Period[period normalizer: FY 2024-25]
+    Period --> Normalized[Normalized Observation]
