@@ -149,3 +149,11 @@ class Quarantine(Base):
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="QUARANTINED")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class IngestionBatch(Base):
+    __tablename__ = 'src_ingestion_batch'
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    scope: Mapped[str] = mapped_column(String(100), nullable=True)
+    source_ids: Mapped[dict] = mapped_column(JSONB, nullable=False) # JSONB list
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="CREATED")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)

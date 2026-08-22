@@ -31,7 +31,7 @@ class ControlledDiscoveryEngine:
         return False
 
     async def discover_sitemap(self, sitemap_url: str) -> List[str]:
-        """Fetch and parse sitemap.xml to extract URLs."""
+        """Fetch and parse sitemap.xml to extract URLs, supporting sitemap indexes."""
         if not self._is_domain_allowed(sitemap_url):
             logger.warning("Sitemap domain not allowed", url=sitemap_url)
             return []
@@ -43,16 +43,32 @@ class ControlledDiscoveryEngine:
         urls = []
         try:
             root = ET.fromstring(res["content"])
-            # Support namespaces
             ns = {"ns": "http://www.sitemaps.org/schemas/sitemap/0.9"}
-            for loc in root.findall(".//ns:loc", ns):
-                if loc.text:
-                    urls.append(loc.text.strip())
-            # Fallback if no namespace matches
-            if not urls:
-                for loc in root.findall(".//loc"):
+            
+            # Check if this is a sitemapindex
+            if "sitemapindex" in root.tag:
+                # Discovered nested sitemaps
+                nested_sitemaps = []
+                for loc in root.findall(".//ns:loc", ns):
+                    if loc.text:
+                        nested_sitemaps.append(loc.text.strip())
+                if not nested_sitemaps:
+                    for loc in root.findall(".//loc"):
+                        if loc.text:
+                            nested_sitemaps.append(loc.text.strip())
+                
+                # Fetch each nested sitemap
+                for nest_url in nested_sitemaps:
+                    urls.extend(await self.discover_sitemap(nest_url))
+            else:
+                for loc in root.findall(".//ns:loc", ns):
                     if loc.text:
                         urls.append(loc.text.strip())
+                # Fallback if no namespace matches
+                if not urls:
+                    for loc in root.findall(".//loc"):
+                        if loc.text:
+                            urls.append(loc.text.strip())
         except Exception as e:
             logger.error("Failed to parse sitemap XML", error=str(e), url=sitemap_url)
             

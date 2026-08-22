@@ -1,0 +1,4 @@
+graph TD
+    Queue[Scale-out Redis Broker] --> Concurrency[High concurrency celery worker pool]
+    Concurrency --> MinIO[Object Storage Raw Archive]
+    Concurrency --> Postgres[PostgreSQL/PostGIS optimized transactions]

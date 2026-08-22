@@ -1,0 +1,8 @@
+graph TD
+    Mime[Mime Type / Magic Bytes] --> ParserFactory[ParserFactory]
+    ParserFactory --> HTML[HTMLParser]
+    ParserFactory --> PDF[PDFParser]
+    ParserFactory --> CSV[CSVParser]
+    ParserFactory --> Excel[XLSXParser]
+    ParserFactory --> GIS[GISParser]
+    ParserFactory --> XML[XMLParser]

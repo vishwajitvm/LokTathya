@@ -61,3 +61,38 @@ def get_discovery_candidates(db: Session = Depends(get_db)):
         }
         for c in candidates
     ]
+
+@router.get("/runs")
+def list_discovery_runs(limit: int = 50, offset: int = 0, db: Session = Depends(get_db)):
+    runs = db.query(IngestionRun).offset(offset).limit(limit).all()
+    return [
+        {
+            "id": str(r.id),
+            "dataset_id": str(r.dataset_id),
+            "started_at": r.started_at,
+            "status": r.status
+        }
+        for r in runs
+    ]
+
+@router.post("/runs")
+def trigger_discovery_runs_path(source_id: uuid.UUID, max_pages: int = 50, db: Session = Depends(get_db)):
+    return trigger_discovery_run(source_id, max_pages, db)
+
+@router.post("/candidates/{id}/approve")
+def approve_candidate(id: uuid.UUID, db: Session = Depends(get_db)):
+    ep = db.query(SourceEndpoint).filter(SourceEndpoint.id == id).first()
+    if not ep:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    ep.status = "ACTIVE"
+    db.commit()
+    return {"status": "SUCCESS", "candidate_id": str(id)}
+
+@router.post("/candidates/{id}/reject")
+def reject_candidate(id: uuid.UUID, db: Session = Depends(get_db)):
+    ep = db.query(SourceEndpoint).filter(SourceEndpoint.id == id).first()
+    if not ep:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    ep.status = "DISABLED"
+    db.commit()
+    return {"status": "SUCCESS", "candidate_id": str(id)}

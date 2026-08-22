@@ -1,0 +1,4 @@
+graph TD
+    Client[ResilientHTTPClient] --> ETag{ETag / Last-Modified Match?}
+    ETag -- Yes --> NotMod[304 Not Modified]
+    ETag -- No --> Fetch[200 OK & Save to MinIO]

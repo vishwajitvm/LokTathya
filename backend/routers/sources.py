@@ -6,6 +6,7 @@ from services.source_service import SourceService
 from core.database import get_db
 from models.source import Source, SourceEndpoint, Document, ContentVersion
 import uuid
+from datetime import datetime
 from typing import Optional
 
 router = APIRouter(prefix="/api/v1/sources", tags=["Sources"])
@@ -133,3 +134,42 @@ def get_document_diff(document_id: uuid.UUID, v1: int, v2: int, db: Session = De
     engine = DocumentDiffEngine()
     diff_res = engine.diff_documents({"text": text_a}, {"text": text_b})
     return diff_res
+
+@router.patch("/{id}")
+def update_source(id: uuid.UUID, updates: dict, db: Session = Depends(get_db)):
+    source = db.query(Source).filter(Source.id == id).first()
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found")
+    for k, v in updates.items():
+        if hasattr(source, k):
+            setattr(source, k, v)
+    db.commit()
+    return {"status": "SUCCESS", "source_id": str(id)}
+
+@router.post("/{id}/endpoints")
+def create_source_endpoint(id: uuid.UUID, url: str, method: str = "GET", db: Session = Depends(get_db)):
+    source = db.query(Source).filter(Source.id == id).first()
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found")
+        
+    ep = SourceEndpoint(
+        source_id=id,
+        url=url,
+        method=method,
+        status="ACTIVE",
+        observed_at=datetime.utcnow()
+    )
+    db.add(ep)
+    db.commit()
+    return {"status": "SUCCESS", "endpoint_id": str(ep.id)}
+
+@router.patch("/endpoints/{ep_id}")
+def update_source_endpoint(ep_id: uuid.UUID, updates: dict, db: Session = Depends(get_db)):
+    ep = db.query(SourceEndpoint).filter(SourceEndpoint.id == ep_id).first()
+    if not ep:
+        raise HTTPException(status_code=404, detail="Endpoint not found")
+    for k, v in updates.items():
+        if hasattr(ep, k):
+            setattr(ep, k, v)
+    db.commit()
+    return {"status": "SUCCESS", "endpoint_id": str(ep_id)}

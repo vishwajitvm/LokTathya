@@ -1,0 +1,5 @@
+graph TD
+    Batch[Batch Run] --> TaskA[Fetch Task A]
+    Batch --> TaskB[Fetch Task B: fails and quarantines]
+    Batch --> TaskC[Fetch Task C]
+    TaskB --> Isolation[Single failure does not abort the batch]

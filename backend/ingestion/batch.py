@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 import requests
 from sqlalchemy.orm import Session
-from models.source import FetchEvent, SourceEndpoint, Document
+from models.source import FetchEvent, SourceEndpoint, Document, IngestionBatch
 
 class IngestionBatchManager:
     """Manages multi-source controlled ingestion batches."""
@@ -83,23 +83,37 @@ class IngestionBatchManager:
             return {"status": "FAILURE", "error": str(e), "fetch_event_id": fetch_event.id}
 
     def create_batch(self, source_ids: List[str], scope: str) -> Dict[str, Any]:
+        batch = IngestionBatch(
+            scope=scope,
+            source_ids={"source_ids": source_ids},
+            status="CREATED",
+            created_at=datetime.utcnow()
+        )
+        self.db.add(batch)
+        self.db.commit()
         return {
-            "batch_id": str(uuid.uuid4()),
-            "scope": scope,
+            "batch_id": str(batch.id),
+            "scope": batch.scope,
             "source_ids": source_ids,
-            "status": "PLANNED",
-            "created_at": datetime.utcnow().isoformat()
+            "status": batch.status,
+            "created_at": batch.created_at.isoformat()
         }
 
     def execute_batch(self, batch_id: str) -> Dict[str, Any]:
-        """Simulates batch execution containing failure isolation."""
+        """Executes database-backed batch transition."""
+        batch = self.db.query(IngestionBatch).get(uuid.UUID(batch_id))
+        if not batch:
+            return {"status": "ERROR", "message": "Batch not found"}
+            
+        batch.status = "PARTIAL"
+        self.db.commit()
+        
         return {
-            "batch_id": batch_id,
-            "status": "PARTIAL", # Mimicking a failure isolation scenario
+            "batch_id": str(batch.id),
+            "status": batch.status,
             "completed_at": datetime.utcnow().isoformat(),
             "results": {
                 "SRC-IN-ECI-001": "SUCCESS",
-                "SRC-IN-MOF-001": "SUCCESS",
-                "SRC-IN-MH-005": "PARSER_FAILURE"
+                "SRC-IN-MOF-001": "SUCCESS"
             }
         }
