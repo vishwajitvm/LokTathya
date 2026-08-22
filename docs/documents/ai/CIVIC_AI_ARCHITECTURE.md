@@ -26,29 +26,7 @@ Generative AI chatbots are prone to hallucinating facts, statistics, and citatio
 
 The Civic AI assistant acts as a natural language gateway to the Postgres database. It does not execute raw SQL queries; instead, it uses pre-defined analytical tools to retrieve data.
 
-```
-       +---------------------------------------------+
-       |                 User Client                 |
-       +---------------------------------------------+
-                              |
-                              | POST /api/v1/chat/
-                              v
-       +---------------------------------------------+
-       |             FastAPI Chat Router             |
-       +---------------------------------------------+
-                              |
-                              v
-       +---------------------------------------------+
-       |                Chat Service                 |
-       +---------------------------------------------+
-         /                                         \
-        /                                           \
-       v                                             v
-+-----------------------------+               +-----------------------------+
-|    Semantic Search Index    |               |    Predefined CivicTools    |
-|   (pgvector Embeddings)     |               |    (Deterministic APIs)     |
-+-----------------------------+               +-----------------------------+
-```
+[![Core System Architecture](https://mermaid.ink/img/Zmxvd2NoYXJ0IFRCCiAgICBVc2VyQ2xpZW50W1VzZXIgQ2xpZW50XSAtLT58UE9TVCAvYXBpL3YxL2NoYXQvfCBGYXN0QVBJQ2hhdFJvdXRlcltGYXN0QVBJIENoYXQgUm91dGVyXQogICAgRmFzdEFQSUNoYXRSb3V0ZXIgLS0-IENoYXRTZXJ2aWNlW0NoYXQgU2VydmljZV0KICAgIENoYXRTZXJ2aWNlIC0tPiBTZW1hbnRpY1NlYXJjaEluZGV4W1NlbWFudGljIFNlYXJjaCBJbmRleF0KICAgIENoYXRTZXJ2aWNlIC0tPiBQcmVkZWZpbmVkQ2l2aWNUb29sc1tQcmVkZWZpbmVkIENpdmljVG9vbHNd)](https://mermaid.ink/img/Zmxvd2NoYXJ0IFRCCiAgICBVc2VyQ2xpZW50W1VzZXIgQ2xpZW50XSAtLT58UE9TVCAvYXBpL3YxL2NoYXQvfCBGYXN0QVBJQ2hhdFJvdXRlcltGYXN0QVBJIENoYXQgUm91dGVyXQogICAgRmFzdEFQSUNoYXRSb3V0ZXIgLS0-IENoYXRTZXJ2aWNlW0NoYXQgU2VydmljZV0KICAgIENoYXRTZXJ2aWNlIC0tPiBTZW1hbnRpY1NlYXJjaEluZGV4W1NlbWFudGljIFNlYXJjaCBJbmRleF0KICAgIENoYXRTZXJ2aWNlIC0tPiBQcmVkZWZpbmVkQ2l2aWNUb29sc1tQcmVkZWZpbmVkIENpdmljVG9vbHNd)
 
 ### A. Semantic Search Index (`pgvector`)
 * Description: Stores vector embeddings of candidate profiles, project descriptions, and budget items.
@@ -72,21 +50,7 @@ The LLM is restricted from generating SQL queries directly. Instead, the planner
 
 ## 4. Grounded Retrieval-Augmented Generation (RAG) Pipeline
 
-```
-[User Question]
-       |
-       v
-[Semantic & Keyword Search] ---> [Query pgvector & Postgres Tables]
-                                              |
-                                              v
-[Context Extraction] ------------> [Build Grounded Prompt Template]
-                                              |
-                                              v
-[Prompt Validation] -------------> [Request LLM Completion (Inference)]
-                                              |
-                                              v
-[Citation Check Engine] ---------> [Stream Response + Source Citations]
-```
+[![Grounded RAG Pipeline](https://mermaid.ink/img/Zmxvd2NoYXJ0IFRCCiAgICBVc2VyUXVlc3Rpb25bVXNlciBRdWVzdGlvbl0gLS0-IFNlbWFudGljS2V5d29yZFNlYXJjaFtTZW1hbnRpYyAmIEtleXdvcmQgU2VhcmNoXQogICAgU2VtYW50aWNLZXl3b3JkU2VhcmNoIC0tPiBRdWVyeVBvc3RncmVzW1F1ZXJ5IHBndmVjdG9yICYgUG9zdGdyZXMgVGFibGVzXQogICAgUXVlcnlQb3N0Z3JlcyAtLT4gQ29udGV4dEV4dHJhY3Rpb25bQ29udGV4dCBFeHRyYWN0aW9uXQogICAgQ29udGV4dEV4dHJhY3Rpb25bQ29udGV4dCBFeHRyYWN0aW9uXSAtLT4gQnVpbGRHcm91bmRlZFByb21wdFtCdWlsZCBHcm91bmRlZCBQcm9tcHQgVGVtcGxhdGVdCiAgICBCdWlsZEdyb3VuZGVkUHJvbXB0IC0tPiBQcm9tcHRWYWxpZGF0aW9uW1Byb21wdCBWYWxpZGF0aW9uXQogICAgUHJvbXB0VmFxpZGF0aW9uIC0tPiBSZXF1ZXN0TExNQ29tcGxldGlvbltSZXF1ZXN0IExMTSBDb21wbGV0aW9uXQogICAgUmVxdWVzdExMTUNvbXBsZXRpb24gLS0-IENpdGF0aW9uQ2hlY2tFbmdpbmVbQ2l0YXRpb24gQ2hlY2sgRW5naW5lXQogICAgQ2l0YXRpb25DaGVja0VuZ2luZSAtLT4gU3RyZWFtUmVzcG9uc2VbU3RyZWFtIFJlc3BvbnNlICsgU291cmNlIENpdGF0aW9uc10=)](https://mermaid.ink/img/Zmxvd2NoYXJ0IFRCCiAgICBVc2VyUXVlc3Rpb25bVXNlciBRdWVzdGlvbl0gLS0-IFNlbWFudGljS2V5d29yZFNlYXJjaFtTZW1hbnRpYyAmIEtleXdvcmQgU2VhcmNoXQogICAgU2VtYW50aWNLZXl3b3JkU2VhcmNoIC0tPiBRdWVyeVBvc3RncmVzW1F1ZXJ5IHBndmVjdG9yICYgUG9zdGdyZXMgVGFibGVzXQogICAgUXVlcnlQb3N0Z3JlcyAtLT4gQ29udGV4dEV4dHJhY3Rpb25bQ29udGV4dCBFeHRyYWN0aW9uXQogICAgQ29udGV4dEV4dHJhY3Rpb25bQ29udGV4dCBFeHRyYWN0aW9uXSAtLT4gQnVpbGRHcm91bmRlZFByb21wdFtCdWlsZCBHcm91bmRlZCBQcm9tcHQgVGVtcGxhdGVdCiAgICBCdWlsZEdyb3VuZGVkUHJvbXB0IC0tPiBQcm9tcHRWYWxpZGF0aW9uW1Byb21wdCBWYWxpZGF0aW9uXQogICAgUHJvbXB0VmFxpZGF0aW9uIC0tPiBSZXF1ZXN0TExNQ29tcGxldGlvbltSZXF1ZXN0IExMTSBDb21wbGV0aW9uXQogICAgUmVxdWVzdExMTUNvbXBsZXRpb24gLS0-IENpdGF0aW9uQ2hlY2tFbmdpbmVbQ2l0YXRpb24gQ2hlY2sgRW5naW5lXQogICAgQ2l0YXRpb25DaGVja0VuZ2luZSAtLT4gU3RyZWFtUmVzcG9uc2VbU3RyZWFtIFJlc3BvbnNlICsgU291cmNlIENpdGF0aW9uc10=)
 
 1. **Query Analysis**: The `Planner` determines if the query requires semantic search, database lookup tools, or a direct response.
 2. **Context Retrieval**: Runs keyword and vector similarity searches against the database indexes, filtering results by confidence score.

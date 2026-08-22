@@ -21,12 +21,7 @@ This document specifies the data ingestion pipelines, parsing formats, data norm
 
 The ingestion pipeline transforms raw file inputs into verified records using a Celery task queue:
 
-```
-[Raw Document] ---> [Parsed Data] ---> [Normalized Data] ---> [Validated Data]
-                                                                     |
-                                                                     v
-[Canonical Database] <--- (Resolve) <--- [Reconciliation Engine] <--- (Match)
-```
+[![Ingestion Processing Stages](https://mermaid.ink/img/Zmxvd2NoYXJ0IFRCCiAgICBSYXdbUmF3IERvY3VtZW50XSAtLT4gUGFyc2VkW1BhcnNlZCBEYXRhXQogICAgUGFyc2VkIC0tPiBOb3JtYWxpemVkW05vcm1hbGl6ZWQgRGF0YV0KICAgIE5vcm1hbGl6ZWQgLS0-IFZhbGlkYXRlZFtWYWxpZGF0ZWQgRGF0YV0KICAgIFZhbGlkYXRlZCAtLT4gTWF0Y2hbTWF0Y2hdCiAgICBNYXRjaCAtLT4gUmVzb2x2ZVtSZXNvbHZlXQogICAgUmVzb2x2ZSAtLT4gQ2Fub25pY2FsW0Nhbm9uaWNhbCBEYXRhYmFzZV0=)](https://mermaid.ink/img/Zmxvd2NoYXJ0IFRCCiAgICBSYXdbUmF3IERvY3VtZW50XSAtLT4gUGFyc2VkW1BhcnNlZCBEYXRhXQogICAgUGFyc2VkIC0tPiBOb3JtYWxpemVkW05vcm1hbGl6ZWQgRGF0YV0KICAgIE5vcm1hbGl6ZWQgLS0-IFZhbGlkYXRlZFtWYWxpZGF0ZWQgRGF0YV0KICAgIFZhbGlkYXRlZCAtLT4gTWF0Y2hbTWF0Y2hdCiAgICBNYXRjaCAtLT4gUmVzb2x2ZVtSZXNvbHZlXQogICAgUmVzb2x2ZSAtLT4gQ2Fub25pY2FsW0Nhbm9uaWNhbCBEYXRhYmFzZV0=)
 
 1. **RAW**: Raw PDFs, CSVs, and GeoJSON files are uploaded to MinIO and registered in the `sources` table with a unique cryptographic hash to ensure auditability.
 2. **PARSED**: Document contents are extracted. Scanned PDFs are processed using OCR tasks.

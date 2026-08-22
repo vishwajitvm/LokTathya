@@ -24,17 +24,7 @@ Comparing election results over time is complicated by boundary shifts during de
 
 ## 3. Delimitation & Comparability Models
 
-```
-[Delimitation Cycle A (e.g. 1973)]
-        |
-        v (Constituency Boundary Polygon A)
-        |
-[Spatial Intersect ST_Intersection] ---> Calculate Overlap %
-        |
-        v (Constituency Boundary Polygon B)
-        |
-[Delimitation Cycle B (e.g. 2002)]
-```
+[![Delimitation & Comparability Models](https://mermaid.ink/img/Zmxvd2NoYXJ0IFRCCiAgICBDeWNsZUFbRGVsaW1pdGF0aW9uIEN5Y2xlIEEgZS5nLiAxOTczXSAtLT4gUG9seWdvbkFbQ29uc3RpdHVlbmN5IEJvdW5kYXJ5IFBvbHlnb24gQV0KICAgIFBvbHlnb25BIC0tPiBJbnRlcnNlY3RbU3BhdGlhbCBJbnRlcnNlY3QgU1RfSW50ZXJzZWN0aW9uXQogICAgSW50ZXJzZWN0IC0tPiBPdmVybGFwW0NhbGN1bGF0ZSBPdmVybGFwICVdCiAgICBJbnRlcnNlY3QgLS0-IFBvbHlnb25CW0NvbnN0aXR1ZW5jeSBCb3VuZGFyeSBQb2x5Z29uIEJdCiAgICBQb2x5Z29uQiAtLT4gQ3ljbGVCW0RlbGltaXRhdGlvbiBDeWNsZSBCIGUuZy4gMjAwMl0=)](https://mermaid.ink/img/Zmxvd2NoYXJ0IFRCCiAgICBDeWNsZUFbRGVsaW1pdGF0aW9uIEN5Y2xlIEEgZS5nLiAxOTczXSAtLT4gUG9seWdvbkFbQ29uc3RpdHVlbmN5IEJvdW5kYXJ5IFBvbHlnb24gQV0KICAgIFBvbHlnb25BIC0tPiBJbnRlcnNlY3RbU3BhdGlhbCBJbnRlcnNlY3QgU1RfSW50ZXJzZWN0aW9uXQogICAgSW50ZXJzZWN0IC0tPiBPdmVybGFwW0NhbGN1bGF0ZSBPdmVybGFwICVdCiAgICBJbnRlcnNlY3QgLS0-IFBvbHlnb25CW0NvbnN0aXR1ZW5jeSBCb3VuZGFyeSBQb2x5Z29uIEJdCiAgICBQb2x5Z29uQiAtLT4gQ3ljbGVCW0RlbGltaXRhdGlvbiBDeWNsZSBCIGUuZy4gMjAwMl0=)
 
 ### A. Spatial Overlap Calculations
 To compare constituencies across delimitation cycles, the database calculates boundary overlaps using PostGIS:

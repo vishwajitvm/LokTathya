@@ -19,18 +19,7 @@ This document specifies the database schemas, entity relationships, primary/fore
 
 ## 2. Entity-Relationship Topology
 
-```
-+------------------+         +-----------------------+         +------------------+
-|   Geographies    |-------->|    Representatives    |<--------|  Constituencies  |
-|  (States/Dist)   |         |     (MPs / MLAs)      |         |  (Boundaries)    |
-+------------------+         +-----------------------+         +------------------+
-         |                               |                              |
-         v                               v                              v
-+------------------+         +-----------------------+         +------------------+
-|     Sources      |         |       Elections       |         |   Data Quality   |
-| (Provenance Reg) |         |   (Vote Counts/BOs)   |         | (Conflicts Logs) |
-+------------------+         +-----------------------+         +------------------+
-```
+[![Entity-Relationship Topology](https://mermaid.ink/img/Zmxvd2NoYXJ0IFRCCiAgICBHZW9ncmFwaGllc1tHZW9ncmFwaGllc10gLS0-IFJlcHJlc2VudGF0aXZlc1tSZXByZXNlbnRhdGl2ZXNdCiAgICBDb25zdGl0dWVuY2llc1tDb25zdGl0dWVuY2llc10gLS0-IFJlcHJlc2VudGF0aXZlcwogICAgR2VvZ3JhcGhpZXMgLS0-IFNvdXJjZXNbU291cmNlc10KICAgIFJlcHJlc2VudGF0aXZlcyAtLT4gRWxlY3Rpb25zW0VsZWN0aW9uc10KICAgIENvbnN0aXR1ZW5jaWVzIC0tPiBEYXRhUXVhbGl0eVtEYXRhIFF1YWxpdHld)](https://mermaid.ink/img/Zmxvd2NoYXJ0IFRCCiAgICBHZW9ncmFwaGllc1tHZW9ncmFwaGllc10gLS0-IFJlcHJlc2VudGF0aXZlc1tSZXByZXNlbnRhdGl2ZXNdCiAgICBDb25zdGl0dWVuY2llc1tDb25zdGl0dWVuY2llc10gLS0-IFJlcHJlc2VudGF0aXZlcwogICAgR2VvZ3JhcGhpZXMgLS0-IFNvdXJjZXNbU291cmNlc10KICAgIFJlcHJlc2VudGF0aXZlcyAtLT4gRWxlY3Rpb25zW0VsZWN0aW9uc10KICAgIENvbnN0aXR1ZW5jaWVzIC0tPiBEYXRhUXVhbGl0eVtEYXRhIFF1YWxpdHld)
 
 ---
 
