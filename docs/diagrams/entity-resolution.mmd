@@ -1,0 +1,5 @@
+graph TD
+    Raw[Raw value] --> Resolve[Match against entities]
+    Resolve -->|High Confidence| Auto[Auto Resolved]
+    Resolve -->|Low Confidence| Human[Flag Human Review]
+    Resolve -->|No Match| Candidate[Candidate Match list]

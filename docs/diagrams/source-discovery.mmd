@@ -1,0 +1,9 @@
+graph LR
+    Start[Endpoint Check] --> Sitemap[Sitemap XML]
+    Start --> RSS[RSS / Atom]
+    Start --> Link[HTML Link Extractor]
+    Sitemap --> Canon[URL Canonicalization]
+    RSS --> Canon
+    Link --> Canon
+    Canon --> Domain[Domain & SSRF Check]
+    Domain --> Candidate[Register Candidate URL]

@@ -1,0 +1,5 @@
+graph TD
+    Fetch[Fetched content] --> Hash[SHA-256 Hash]
+    Hash --> Check[Check Existing Versions]
+    Check -->|Same Hash| Log[Log Event, Skip Insert]
+    Check -->|New Hash| Insert[Create new ContentVersion]

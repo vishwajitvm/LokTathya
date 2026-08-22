@@ -1,0 +1,5 @@
+graph TD
+    Tabular[CSV / XLSX / XLSM] --> Sniff[Dialect & BOM Sniffer]
+    Sniff --> Read[Cell processing]
+    Read --> Precision[Monetary Decimal precision]
+    Precision --> Struct[Headers & rows structure]

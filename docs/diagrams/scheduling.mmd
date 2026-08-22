@@ -1,0 +1,4 @@
+graph TD
+    Scheduler[heartbeat cron] --> Check[Check source next_scheduled_at]
+    Check --> Ingest[Queue fetch run task]
+    Ingest --> Update[Update next_scheduled_at]

@@ -1,0 +1,5 @@
+graph TD
+    Fetch[Fetch Attempt] -->|503/429/Timeout| Retry[Exponential Backoff]
+    Retry --> Jitter[Add Jitter Noise]
+    Jitter --> Next[Next Fetch Attempt]
+    Fetch -->|404/403/400| Fail[Non-Retryable: Quarantine]

@@ -29,12 +29,18 @@ class ParserFactory:
             return PDFParser()
         elif detected_format == "CSV":
             return CSVParser()
-        elif detected_format == "XLSX":
+        elif detected_format in ["XLSX", "XLSM", "XLS"]:
             return XLSXParser()
         elif detected_format == "JSON":
             return JSONParser()
+        elif detected_format in ["GEOJSON", "KML", "KMZ", "SHAPEFILE_ARCHIVE", "GIS"]:
+            return GISParser()
+        elif detected_format == "XML":
+            return XMLParser()
+        elif detected_format == "ZIP":
+            return GISParser()
         else:
-            raise NotImplementedError(f"No parser implemented for format: {detected_format}")
+            return PlainTextParser()
 
 class BaseParser:
     def parse(self, content: bytes, meta: Dict[str, Any]) -> Dict[str, Any]:
@@ -189,4 +195,109 @@ class JSONParser(BaseParser):
             structured_content=data,
             text_content=json.dumps(data, indent=2),
             parser_name="JSONParser"
+        )
+
+class GISParser(BaseParser):
+    def parse(self, content: bytes, meta: Dict[str, Any]) -> Dict[str, Any]:
+        import zipfile
+        import xml.etree.ElementTree as ET
+        detected_format = meta.get("detected_format", "GEOJSON")
+        structured = {}
+        text = ""
+        
+        try:
+            if detected_format == "GEOJSON" or content.startswith(b"{"):
+                data = json.loads(content.decode('utf-8', errors='ignore'))
+                structured = {
+                    "type": data.get("type", "FeatureCollection"),
+                    "features_count": len(data.get("features", [])),
+                    "crs": data.get("crs", {"type": "name", "properties": {"name": "EPSG:4326"}})
+                }
+                text = f"GeoJSON FeatureCollection with {structured['features_count']} features."
+                
+            elif detected_format == "KML" or b"<kml" in content.lower():
+                if b"<!ENTITY" in content or b"<!DOCTYPE" in content:
+                    return self._build_result(meta=meta, structured_content={}, status="ERROR: XML entity declarations or DOCTYPES are forbidden for security reasons.", parser_name="GISParser")
+                root = ET.fromstring(content)
+                placemarks = root.findall(".//Placemark")
+                structured = {
+                    "placemarks_count": len(placemarks),
+                    "document_name": "KML Document"
+                }
+                text = f"KML Document containing {structured['placemarks_count']} placemarks."
+                
+            elif detected_format == "KMZ":
+                with zipfile.ZipFile(io.BytesIO(content)) as z:
+                    for name in z.namelist():
+                        if ".." in name or name.startswith("/") or name.startswith("\\"):
+                            return self._build_result(meta=meta, structured_content={}, status="ERROR: Malicious path traversal inside archive (Zip Slip Prevention)", parser_name="GISParser")
+                    
+                    kml_names = [n for n in z.namelist() if n.endswith('.kml')]
+                    if kml_names:
+                        kml_content = z.read(kml_names[0])
+                        if b"<!ENTITY" in kml_content or b"<!DOCTYPE" in kml_content:
+                            return self._build_result(meta=meta, structured_content={}, status="ERROR: XML entity declarations or DOCTYPES are forbidden for security reasons.", parser_name="GISParser")
+                        root = ET.fromstring(kml_content)
+                        placemarks = root.findall(".//Placemark")
+                        structured = {
+                            "placemarks_count": len(placemarks),
+                            "document_name": kml_names[0]
+                        }
+                        text = f"KMZ Document containing KML: {kml_names[0]} with {structured['placemarks_count']} placemarks."
+                    else:
+                        structured = {"error": "No KML file found in KMZ archive"}
+                        
+            elif detected_format in ["SHAPEFILE_ARCHIVE", "ZIP"]:
+                with zipfile.ZipFile(io.BytesIO(content)) as z:
+                    names = z.namelist()
+                    for name in names:
+                        if ".." in name or name.startswith("/") or name.startswith("\\"):
+                            return self._build_result(meta=meta, structured_content={}, status="ERROR: Malicious path traversal inside archive (Zip Slip Prevention)", parser_name="GISParser")
+                    
+                    structured = {
+                        "files": names,
+                        "is_shapefile": any(n.endswith('.shp') for n in names)
+                    }
+                    text = f"ZIP Archive containing {len(names)} files. Is Shapefile: {structured['is_shapefile']}"
+        except Exception as e:
+            return self._build_result(meta=meta, structured_content={}, status=f"ERROR: {str(e)}", parser_name="GISParser")
+
+        return self._build_result(
+            meta=meta,
+            structured_content=structured,
+            text_content=text,
+            parser_name="GISParser"
+        )
+
+class XMLParser(BaseParser):
+    def parse(self, content: bytes, meta: Dict[str, Any]) -> Dict[str, Any]:
+        import xml.etree.ElementTree as ET
+        if b"<!ENTITY" in content or b"<!DOCTYPE" in content:
+            return self._build_result(meta=meta, structured_content={}, status="ERROR: XML entity declarations or DOCTYPES are forbidden for security reasons.", parser_name="XMLParser")
+        try:
+            root = ET.fromstring(content)
+            structured = {
+                "tag": root.tag,
+                "attrib": dict(root.attrib),
+                "children_count": len(list(root))
+            }
+            text = f"XML document root: {root.tag}"
+        except Exception as e:
+            return self._build_result(meta=meta, structured_content={}, status=f"ERROR: {str(e)}", parser_name="XMLParser")
+
+        return self._build_result(
+            meta=meta,
+            structured_content=structured,
+            text_content=text,
+            parser_name="XMLParser"
+        )
+
+class PlainTextParser(BaseParser):
+    def parse(self, content: bytes, meta: Dict[str, Any]) -> Dict[str, Any]:
+        text = content.decode('utf-8', errors='ignore')
+        return self._build_result(
+            meta=meta,
+            structured_content={"lines_count": len(text.splitlines())},
+            text_content=text,
+            parser_name="PlainTextParser"
         )

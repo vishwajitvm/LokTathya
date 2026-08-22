@@ -1,0 +1,4 @@
+graph TD
+    Fail[Parser/Validation Failure] --> Log[Log correlation request ID]
+    Log --> Quarantine[Quarantine item table]
+    Quarantine --> API[API inspection / Retry trigger]

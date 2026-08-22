@@ -1,0 +1,8 @@
+graph TD
+    Src[Source Registry] --> End[Endpoint]
+    End --> Fetch[Resilient HTTP]
+    Fetch --> Store[MinIO raw store]
+    Store --> Factory[ParserFactory]
+    Factory --> Obs[Observation]
+    Obs --> Prov[Provenance Chain]
+    Prov --> DB[PostgreSQL]

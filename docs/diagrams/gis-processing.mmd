@@ -1,0 +1,4 @@
+graph TD
+    GIS[GeoJSON / KML / KMZ / Shapefile] --> Geo[Validate Geometry & CRS]
+    Geo --> Proj[Project coordinates to EPSG:4326]
+    Proj --> Store[Store GIS observation]

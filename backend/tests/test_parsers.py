@@ -87,3 +87,41 @@ def test_xlsx_parser():
     assert "Sheet1" in sheets
     assert sheets["Sheet1"]["headers"] == ["Header1", "Header2"]
     assert sheets["Sheet1"]["rows"] == [["Val1", "Val2"]]
+
+def test_xml_parser():
+    xml_content = b"<root id='123'><child>hello</child></root>"
+    meta = {"document_id": "doc-6"}
+    parser = ParserFactory.get_parser("XML")
+    res = parser.parse(xml_content, meta)
+    
+    assert res["status"] == "SUCCESS"
+    assert res["structured_content"]["tag"] == "root"
+    assert res["structured_content"]["attrib"] == {"id": "123"}
+    assert res["structured_content"]["children_count"] == 1
+
+def test_geojson_parser():
+    geojson_content = json.dumps({
+        "type": "FeatureCollection",
+        "features": [
+            {"type": "Feature", "geometry": {"type": "Point", "coordinates": [72.0, 19.0]}}
+        ]
+    }).encode('utf-8')
+    
+    meta = {"document_id": "doc-7", "detected_format": "GEOJSON"}
+    parser = ParserFactory.get_parser("GEOJSON")
+    res = parser.parse(geojson_content, meta)
+    
+    assert res["status"] == "SUCCESS"
+    assert res["structured_content"]["type"] == "FeatureCollection"
+    assert res["structured_content"]["features_count"] == 1
+    assert "GeoJSON" in res["text_content"]
+
+def test_kml_parser():
+    kml_content = b"<kml><Document><name>Mumbai</name><Placemark><name>point1</name></Placemark></Document></kml>"
+    meta = {"document_id": "doc-8", "detected_format": "KML"}
+    parser = ParserFactory.get_parser("KML")
+    res = parser.parse(kml_content, meta)
+    
+    assert res["status"] == "SUCCESS"
+    assert res["structured_content"]["placemarks_count"] == 1
+    assert "KML Document" in res["text_content"]

@@ -1,0 +1,8 @@
+graph TD
+    subgraph Registry Metadata
+        Source[Source ID] --> Pub[Public ID]
+        Source --> Name[Name & Official Name]
+        Source --> Scope[Country, State, District, Department]
+        Source --> Policy[Robots, License, Authentication]
+        Source --> Lifecycle[Discovered,Candidate,Verified,Active,Degraded,Retired]
+    end

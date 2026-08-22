@@ -1,0 +1,7 @@
+graph TD
+    Detector[Format Detector] -->|MIME/Magic| Dispatcher[ParserFactory]
+    Dispatcher --> HTML[HTMLParser]
+    Dispatcher --> PDF[PDFParser]
+    Dispatcher --> CSV[CSVParser]
+    Dispatcher --> XLSX[XLSXParser]
+    Dispatcher --> GIS[GISParser]

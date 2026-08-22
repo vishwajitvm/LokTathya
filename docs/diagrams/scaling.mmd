@@ -1,0 +1,8 @@
+graph TD
+    Load[Ingestion Volume] --> Queues[Celery partitions]
+    Queues --> Q1[fetch]
+    Queues --> Q2[pdf / ocr]
+    Queues --> Q3[tabular]
+    Q1 --> W1[Fetch workers]
+    Q2 --> W2[OCR GPU workers]
+    Q3 --> W3[Tabular workers]

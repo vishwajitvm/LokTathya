@@ -1,0 +1,6 @@
+graph TD
+    HTML[Raw HTML] --> Clean[HTMLNormalizer: strip noise]
+    Clean --> Hash[Normalized Content Hash]
+    Hash --> Check[Compare Latest Version]
+    Check -->|Change| New[Create new WebPageVersion]
+    Check -->|No Change| Skip[Skip insert]
