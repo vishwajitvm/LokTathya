@@ -1,0 +1,7 @@
+graph TD
+    FAIL[Failure Detected] --> ISOL[Isolate Job]
+    ISOL --> QUAR[Move to Quarantine]
+    QUAR --> LOG[Log TraceNest ID]
+    LOG --> RETRY[Retry with Jitter]
+    RETRY -->|Success| COMP[Complete]
+    RETRY -->|Fail| HUMAN[Human Review]

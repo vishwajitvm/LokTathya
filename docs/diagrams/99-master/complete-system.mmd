@@ -1,0 +1,32 @@
+graph TD
+    subgraph Official Sources
+        OS[Official Sources] --> SR[Source Registry]
+        SR --> SE[Source Endpoints]
+    end
+    subgraph Ingestion
+        SE --> DC[Discovery]
+        DC --> FO[Fetch Orchestrator]
+        FO --> RH[Resilient HTTP]
+        RH --> RA[Raw Artifact]
+        RA --> MN[MinIO]
+        MN --> FD[Format Detector]
+    end
+    subgraph Processing
+        FD --> PR[Processors]
+        PR --> NM[Normalization]
+        NM --> VL[Validation]
+        VL --> OB[Observation]
+    end
+    subgraph Data Quality
+        OB --> ER[Entity Resolution]
+        ER --> RC[Reconciliation]
+        RC --> CD[Canonical Data]
+        CD --> PV[Provenance]
+    end
+    subgraph Presentation
+        PV --> DB[PostgreSQL / PostGIS]
+        DB --> VS[Document Search / PGVECTOR]
+        VS --> API[Public API]
+        API --> DE[Data Explorer]
+        API --> AI[Civic AI]
+    end

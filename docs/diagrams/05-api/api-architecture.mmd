@@ -1,0 +1,7 @@
+graph TD
+    FE[Frontend] --> API[FastAPI]
+    API --> SRV[Services]
+    SRV --> DB[(PostgreSQL)]
+    SRV --> MO[(MinIO)]
+    API --> REDIS[Redis]
+    REDIS --> CEL[Celery Workers]

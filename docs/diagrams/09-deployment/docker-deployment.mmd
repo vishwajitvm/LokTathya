@@ -1,0 +1,11 @@
+graph TD
+    subgraph Docker Containers
+        FE[Frontend] --> BE[Backend]
+        BE --> DB[(Postgres)]
+        BE --> RD[(Redis)]
+        BE --> MN[(MinIO)]
+        WR[Worker] --> RD
+        WR --> DB
+        WR --> MN
+        SC[Scheduler] --> RD
+    end
