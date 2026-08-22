@@ -1,0 +1,5 @@
+graph TD
+    Request[GET /api/v1/provenance/{id}] --> Fact[Query CanonicalFact]
+    Fact --> Claim[Query prov_claim]
+    Claim --> Evidence[Query prov_evidence]
+    Evidence --> Output[Return explanation tracing fact back to source metadata]

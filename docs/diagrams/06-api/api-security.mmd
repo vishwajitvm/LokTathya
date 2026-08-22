@@ -1,0 +1,4 @@
+graph TD
+    Input[User Parameter] --> Pydantic[Pydantic verification: type coercions]
+    Pydantic --> ORM[SQLAlchemy Parameter binding: SQL injection prevention]
+    ORM --> Response[Filtered domain DTO: hide DB secrets]

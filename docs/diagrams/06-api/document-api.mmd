@@ -1,0 +1,4 @@
+graph TD
+    Request[GET /api/v1/documents] --> Doc[Query src_document]
+    Doc --> Version[Query src_content_version]
+    Version --> Output[List documents with storage path and retrievability status]

@@ -1,0 +1,3 @@
+graph TD
+    Request[GET /api/v1/data-quality/conflicts] --> Fact[Query CanonicalFact where conflict_status is CONFLICTING]
+    Fact --> Output[List unresolved data quality issues]
