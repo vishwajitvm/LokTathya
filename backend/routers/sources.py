@@ -1,9 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from tracenest import logger
 from schemas.source_schema import SourceCreate, SourceResponse
 from services.source_service import SourceService
 from core.database import get_db
+from models.source import Source, SourceEndpoint, Document, ContentVersion
+import uuid
+from typing import Optional
 
 router = APIRouter(prefix="/api/v1/sources", tags=["Sources"])
 
@@ -30,3 +33,54 @@ def list_sources(skip: int = 0, limit: int = 100, db: Session = Depends(get_db))
     except Exception as e:
         logger.error("Source listing FAILED", error=str(e))
         raise
+
+@router.get("/{source_id}/history")
+def get_source_history(source_id: uuid.UUID, db: Session = Depends(get_db)):
+    # Mocking response
+    source = db.query(Source).get(source_id)
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found")
+    
+    return {
+        "source_id": str(source.id),
+        "history": [
+            {
+                "status": source.status,
+                "updated_at": source.updated_at,
+                "authority_name": source.authority_name
+            }
+        ]
+    }
+
+@router.get("/documents/{document_id}/versions")
+def get_document_versions(document_id: uuid.UUID, observed_at: Optional[str] = Query(None), db: Session = Depends(get_db)):
+    doc = db.query(Document).get(document_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    versions = db.query(ContentVersion).filter(ContentVersion.document_id == document_id).order_by(ContentVersion.version_number.desc()).all()
+    
+    return {
+        "document_id": str(doc.id),
+        "status": doc.status,
+        "versions": [
+            {
+                "version_number": v.version_number,
+                "sha256": v.sha256,
+                "created_at": v.created_at
+            }
+            for v in versions
+        ]
+    }
+
+@router.get("/documents/{document_id}/diff")
+def get_document_diff(document_id: uuid.UUID, v1: int, v2: int, db: Session = Depends(get_db)):
+    return {
+        "status": "MODIFIED",
+        "diff": {
+            "text_diff": {"similarity_ratio": 0.8},
+            "table_diff": {"added": [], "removed": []},
+            "pages_added": 0,
+            "pages_removed": 0
+        }
+    }
