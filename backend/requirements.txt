@@ -9,5 +9,6 @@ pydantic==2.7.2
 pydantic-settings==2.2.1
 celery==5.4.0
 redis==5.0.4
+tracenest==0.1.18
 
 pytest==8.2.0
