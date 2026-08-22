@@ -66,6 +66,10 @@ services:
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      # LangSmith / LangChain environment variables
+      LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2:-true}
+      LANGCHAIN_PROJECT: ${LANGCHAIN_PROJECT:-loktathya}
+      LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY:-}
     ports:
       - "8001:8000"
     depends_on:
@@ -91,6 +95,10 @@ services:
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      # LangSmith / LangChain environment variables
+      LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2:-true}
+      LANGCHAIN_PROJECT: ${LANGCHAIN_PROJECT:-loktathya}
+      LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY:-}
     depends_on:
       redis:
         condition: service_healthy
