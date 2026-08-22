@@ -48,9 +48,11 @@ The ingestion pipeline transforms raw file inputs into verified records using a 
 
 ## 4. OCR Extraction & Scanned Document Parsing
 
-Ingesting scanned Form 26 PDFs (nomination affidavits) requires special parsing logic:
-* **Tesseract Integration**: Celery workers run OCR processes on scanned pages, outputting extracted text blocks.
+Ingesting scanned Form 26 PDFs (nomination affidavits) or budget sheets requires specialized parsing logic:
+* **Native Text Extraction Priority**: The parser prioritizes extracting native digital text layers first. OCR operations are strictly a fallback.
+* **Tesseract & LayoutLM OCR Fallback**: If the native text density/quality metric falls below a critical threshold, Celery enqueues a layout-aware OCR job (using `TesseractProvider` or `LayoutLM`).
 * **Confidence Checks**: If the average OCR character confidence falls below `0.80`, the file is sent to the quarantine folder for manual index verification.
+* **Page Mapping Retention**: Extracted text chunks retain mapping references back to their original page numbers to support validation and audit checks.
 * **Redaction Filters**: Extracted text is checked by PII redaction filters before being stored.
 
 ---

@@ -93,6 +93,15 @@ Every deployment must pass the following compliance audits:
 
 ---
 
-## 3. Related Documents
+## 3. Phase 15 Gaps & Execution Blocker Audits
+
+During the runtime compliance audits, several architectural gap constraints were evaluated:
+* **Docker Daemon Access Boundaries**: Genuinely starting and verifying PostgreSQL, Redis, and MinIO alongside the Python backend is partially restricted in the sandboxed agent execution environment.
+* **Stitch Integration Blocker**: Due to the lack of Stitch MCP design tools in the sandbox agent environment, direct design synchronization is blocked. Styling modifications must be verified directly via Next.js routes.
+* **Alembic Database Validations**: Physical testing of database migrations (`alembic upgrade head`) requires active PostgreSQL network connections, meaning database integration tests must run in isolated container shells.
+
+---
+
+## 4. Related Documents
 * [PLATFORM_CORE.md](file:///c:/python/LokTathya/docs/features/00-platform/PLATFORM_CORE.md)
 * [VALIDATION_RECONCILIATION.md](file:///c:/python/LokTathya/docs/documents/data-quality/VALIDATION_RECONCILIATION.md)

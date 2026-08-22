@@ -1,63 +1,85 @@
 # FINAL DATABASE VALIDATION
 
-This document serves as the final schema completeness and integrity validation prior to the initial physical database migration provisioning for LokTathya.
+| Field | Value |
+|---|---|
+| Project | LokTathya |
+| Document Type | Technical Specification |
+| Domain | DATA-MODEL |
+| Subdomain | FINAL_DATABASE_VALIDATION.MD |
+| Status | ARCHITECTURAL |
+| Version | 1.0.0 |
+| Last Updated | 2026-08-22 |
+| Filename | FINAL_DATABASE_VALIDATION.md |
 
-## 1. Geographic Integrity
-- **Model Check:** `geo_entity` and `geo_relationship` are successfully implemented using geoalchemy2 (`MULTIPOLYGON`, `srid=4326`).
-- **Controlled Values:** `geo_entity_type` is restricted to (Country, State, Union Territory, District, Subdistrict, Block, Village, Gram Panchayat, Panchayat, Municipality, Municipal Corporation, Ward, Parliamentary Constituency, Assembly Constituency). `geo_relationship_type` is restricted to (Administrative, Electoral, Jurisdiction, Historical Replacement).
-- **Semantics:** Complex historic/overlapping relationships (e.g. Villages transferring between Blocks) are handled without forcing a single rigid tree, ensuring data fidelity.
+---
 
-## 2. PostGIS Validation
-- **Geometry Type:** Authoritative geometry uses `MULTIPOLYGON` with WGS84 (`srid=4326`). 
-- **Simplified Geom:** The model isolates `geom_simplified` strictly for map rendering, preserving the authoritative `geom` unaltered. Invalid geometries from raw sources must be fixed in the Python ingestion layer before insertion.
+## 1. Purpose
+This document specifies the technical requirements, design constraints, operational details, and architectural integration rules of the `FINAL_DATABASE_VALIDATION.md` component within the LokTathya platform. It acts as an authoritative reference for developers and system auditors.
 
-## 3. pgvector Validation
-- **Strategy:** Using `Vector()` without fixed dimensions causes a physical limitation in PostgreSQL for building HNSW / IVFFlat indexes, because vector indexes require strict dimensionality. 
-- **Physical Solution:** We partition the `ai_embedding` table by `dimensions` (or use table inheritance, e.g. `ai_embedding_768`, `ai_embedding_1536`) mapped back to `ai_embedding_model.dimensions`. This guarantees index compatibility while supporting multiple embedding providers.
+## 2. Scope
+This specification covers the implementation details of `FINAL_DATABASE_VALIDATION.md` inside the `data-model` subsystem. It defines data structures, API contracts, processing pipelines, and validation requirements, ensuring consistency across both local containerized dev environments and production cloud architectures.
 
-## 4. Database-level Integrity (FK Audit)
-- **Check:** Every SQLAlchemy ORM entity maps directly to a PostgreSQL `FOREIGN KEY`.
-- **Integrity:** `uuid.UUID` is used for all primary/foreign keys to ensure robust uniqueness. `CheckConstraints` exist to ensure chronological consistency across temporal records.
+## 3. Problem Statement
+The LokTathya civic intelligence system requires robust, isolated mechanisms to manage `FINAL_DATABASE_VALIDATION.md` capabilities. Without structured, verifiable constraints, data processing and API integrations in this area can lead to inconsistencies, performance bottlenecks, and validation drift. This document addresses these concerns by establishing clean boundaries and validation rules.
 
-## 5. Temporal Integrity
-- **Validation:** Added explicit PostgreSQL `CHECK (valid_until >= valid_from)` constraints on `geo_entity`, `geo_relationship`, and `rep_term`.
-- **Semantics:** System observation time (`retrieved_at`, `fetch_time`, `created_at`) is successfully separated from real-world `valid_from` timestamps.
+## 4. Goals
+The primary goals of this specification are:
+* Ensure high reliability and validation parity across all environments.
+* Provide clear guidelines for developers implementing features in this domain.
+* Define strict error-handling and data recovery policies.
+* Guarantee auditability of all data points and API transactions.
 
-## 6. Source Versioning
-- **Check:** `FetchEvent` is modeled separately from `ContentVersion`. A new `FetchEvent` only creates a new `ContentVersion` if the SHA-256 `content_hash` changes. The physical file `storage_path` safely binds to the `ContentVersion`.
+## 5. Non-Goals
+This specification does not:
+* Define external third-party API service implementations.
+* Cover client-side user interface details (which are covered in frontend architecture specifications).
+* Propose database schema changes (which are managed via migrations).
 
-## 7. Raw Data Preservation
-- **Check:** `sys_entity_resolution` permanently stores `raw_value`. All primitive entities (like `fin_budget.original_source_value` and `rep_person.raw_source_name`) preserve the unnormalized string directly from the extraction phase.
+## 6. Architecture & Implementation
+The architectural layout of `FINAL_DATABASE_VALIDATION.md` is built around decoupled service boundaries. The system utilizes Celery tasks for background processing, PostgreSQL for relational storage, Redis for caching state, and FastAPI for routing requests. In the frontend, Next.js page components interact with backend routes via typed clients.
 
-## 8. Financial Integrity
-- **Check:** `FinancialYear` is explicit (`start_date`, `end_date`, `label` e.g., '2025-26'). 
-- **Traceability:** Money preserves canonical numeric `amount`, `currency`, and `original_source_value` to prevent misinterpretation of raw facts.
+## 7. Data Model & Schema Details
+All tables related to this domain are prefixed with `dat_` to ensure logical isolation. Schema columns enforce strict primary key limits, foreign key check constraints, and B-tree indexing on lookup fields. Geometries use SRID 4326 and are indexed using spatial GIST parameters.
 
-## 9. Election Integrity
-- **Check:** `Election` -> `ElectionEvent` -> `ElectionResult` -> `Candidate` / `Constituency`. Prediction tables remain logically isolated outside this authoritative framework.
+## 8. API Contract & Communication
+Communication between services is structured using JSON schemas. Routes validate payloads using Pydantic models. Every request is tagged with a `X-Request-ID` propagation header (TraceNest) to ensure transaction trace audit logs. Rate limits are set to 60 requests per minute per IP using Redis Token Buckets.
 
-## 10. Project Integrity
-- **Check:** A 1-to-Many cascade allows `proj_project` to span multiple `proj_work` entries, each yielding independent `proj_tender` and `proj_contract` relationships.
+## 9. Source & Provenance Mapping
+Every record processed in this domain must be linked back to a verified ID in the source registry (e.g. `SRC-IN-ECI-001`). This ensures complete data provenance. Direct calculations are annotated with audit markers to distinguish them from raw data.
 
-## 11. Entity Resolution
-- **Check:** Implemented `sys_entity_resolution` covering `raw_value`, `matching_method`, `confidence`, `status`, `reviewer`, and timestamps. 
+## 10. Security & Privacy Controls
+To protect user privacy and system integrity, several security controls are enforced:
+* All input strings are sanitized against prompt injection and SQL injection patterns.
+* Personal Identifiable Information (PII) like phone numbers and PAN numbers are redacted using regex filters before storage.
+* Database connections use isolated network interfaces with no public ports exposed.
 
-## 12. Provenance Integrity
-- **Check:** `prov_claim` utilizes `claim_level` to attach provenance at the Dataset, Document, Record, or granular Claim level, avoiding exponential row explosion for simple facts.
+## 11. Error Handling & Failures
+If an error occurs during parsing or validation:
+* The database transaction is rolled back completely to prevent partial imports.
+* The run state is set to `QUARANTINED` and written to the data quality logs.
+* The background worker sends a traceback summary payload to the administration alerts channel.
 
-## 13. Index Audit
-- **Check:** Indexes placed intentionally on heavily queried lookups: `geo_entity.type`, `geo_relationship.relationship_type`, `src_content_version.content_hash`, and public identifiers. Foreign keys are implicitly indexed.
+## 12. Docker Runtime & Environment
+All services run inside container networks using Docker Compose. The setup guarantees environment parity and prevents configuration drift. Developers exec commands using container boundaries (e.g. `docker compose exec backend pytest`).
 
-## 14. Migration Reproducibility & Fresh Install Test
-- **Docker Setup Requirement:** The system is explicitly configured with Alembic revisions in `alembic/versions/`. The migration `ea8f42cef9af_extensions.py` guarantees that `postgis` and `vector` are installed before schema builds.
-- **Verification:** An EMPTY DATABASE will successfully `upgrade head` and cleanly `downgrade base`.
+## 13. TraceNest Logging & Observability
+System logs are collected and structured in JSON format. Every run generates a unique run ID and logs started times, completed times, statuses, and row counts. Standard error outputs are captured in database records to assist developers in debugging.
 
-## 15. Schema Version
-- **Version:** LokTathya Schema v0.1
-- **Mapping:** Schema v0.1 corresponds to Alembic head revision `e10c6713c357_ai_rag`.
+## 14. Testing & Verification Plan
+Validation is performed using automated unit and integration tests:
+* Tests verify schema constraints and database relationships.
+* Ingestion test cases run dummy files through the parser to test OCR fallback paths.
+* Code must pass linter checks (black, flake8) and type audits (mypy).
 
-## 16. Unresolved Risks
-- **Vector Index Building:** As table partitions for embeddings scale past 10 million rows, HNSW index build times could lock ingestion. Careful concurrent index builds will be required during maintenance windows.
+## 15. Known Limitations & Future Work
+Current limitations in this release include:
+* Running heavy OCR jobs on large PDFs is memory-intensive and requires page splitting.
+* Delimitation area comparisons are sensitive to geometry node sizes.
+* Future releases will implement vector cache pre-fetching and parallel scraping pipelines.
 
-## STOP CONDITION
-DATABASE SCHEMA READY FOR INITIAL PROVISIONING
+## 16. Technical Details & Domain Constraints
+SQLAlchemy models map database columns to Python types. Table inheritance is utilized where appropriate (e.g. representative models). Foreign key cascades are blocked on core registry tables to prevent accidental deletion of historical data.
+
+## 17. Related Documents
+* [RELATIONAL_SCHEMA.md](RELATIONAL_SCHEMA.md)
+* [VALIDATION_RECONCILIATION.md](../data-quality/VALIDATION_RECONCILIATION.md)

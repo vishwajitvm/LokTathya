@@ -61,6 +61,13 @@ The LLM is restricted from generating SQL queries directly. Instead, the planner
 * `get_constituency_projects(const_id: UUID)`: Retrieves active infrastructure works.
 * `get_election_results(election_id: UUID)`: Retrieves vote counts and swing metrics.
 
+### C. Search, Retrieval & Vector Storage Strategy
+* **Full Text Search**: PostgreSQL `to_tsvector` is utilized using lexical matching for both English and Hindi text.
+* **Hybrid Retrieval**: Combines Full Text Search (FTS) with pgvector outputs utilizing Reciprocal Rank Fusion (RRF) algorithms.
+* **Metadata Filtering**: Source, jurisdiction, date, and document type filters must restrict candidate pools before semantic ranking is performed.
+* **Vector Storage Partitioning**: Storage relies solely on PostgreSQL with the `pgvector` extension. Database tables are partitioned by vector dimensions (e.g. `ai_embedding_1024`, `ai_embedding_1536`) to enforce HNSW/IVFFlat indexing constraints without adding external vector database instances.
+* **Reranking**: An abstract Reranker pipeline exists for top-K refinement, disabled until baseline metrics require it.
+
 ---
 
 ## 4. Grounded Retrieval-Augmented Generation (RAG) Pipeline

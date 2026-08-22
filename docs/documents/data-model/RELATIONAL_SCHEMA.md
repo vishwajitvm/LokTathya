@@ -71,7 +71,19 @@ Tracks legislative careers:
 
 ---
 
-## 4. Indexing & Optimization Strategy
+## 4. Physical Database Architecture & Naming Strategy
+
+The database uses PostgreSQL with PostGIS and pgvector:
+* **Table Prefixing**: Table prefixes denote logical domain separations:
+  * `geo_`: Geographies (constituencies, districts).
+  * `fin_`: Finances (budgets, line items).
+  * `src_`: Data sources (provenance metadata).
+* **PostGIS Extension**: Enabled for coordinate queries using WGS84 projection (SRID 4326).
+* **pgvector Extension**: Enabled for vector chunk queries of representative narrative data.
+
+---
+
+## 5. Indexing & Optimization Strategy
 
 1. **Spatial Indexing**: A **GIST** index is configured on the `constituencies.boundary` column to optimize point-in-polygon queries.
 2. **Vector Indexing**: An **HNSW** index is configured on the `representatives.biography_vector` column to optimize semantic search retrieval times.
@@ -79,6 +91,6 @@ Tracks legislative careers:
 
 ---
 
-## 5. Related Documents
+## 6. Related Documents
 * [LOCATION_RESOLUTION.md](file:///c:/python/LokTathya/docs/features/01-location/LOCATION_RESOLUTION.md)
 * [REPRESENTATIVES_DIRECTORY.md](file:///c:/python/LokTathya/docs/features/02-representatives/REPRESENTATIVES_DIRECTORY.md)

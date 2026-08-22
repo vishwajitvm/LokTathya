@@ -89,6 +89,38 @@ This document indexes the Architectural Decision Records (ADRs) of the LokTathya
 
 ---
 
+### F. ADR-0006: Table Prefixes for Logical Database Separation
+* **Status**: ACCEPTED
+* **Date**: 2026-08-22
+* **Decision**: Use PostgreSQL with explicit table prefixes (e.g., `geo_`, `fin_`, `src_`) instead of database schemas for physical separation.
+* **Rationale**: Simplifies ORM mapping (SQLAlchemy) and backup/restore scripts, while retaining clean logical division between domains.
+
+---
+
+### G. ADR-0007: Explicit Temporal Validity Mapping
+* **Status**: ACCEPTED
+* **Date**: 2026-08-22
+* **Decision**: Use explicit `valid_from` / `valid_until` fields only where real-world temporal validity exists (e.g., representative terms). System observation time is tracked separately in run metadata.
+* **Rationale**: Prevents data clutter and query overhead on historically static tables.
+
+---
+
+### H. ADR-0008: Geospatial Coordinate Storage with PostGIS
+* **Status**: ACCEPTED
+* **Date**: 2026-08-22
+* **Decision**: Store all geospatial boundaries using PostGIS geometries in WGS84 projection (SRID 4326), keeping electoral constituencies separate from administrative blocks.
+* **Rationale**: Retains boundary independence and enables standard geo queries.
+
+---
+
+### I. ADR-0009: Decoupled Vector Storage in pgvector
+* **Status**: ACCEPTED
+* **Date**: 2026-08-22
+* **Decision**: Rely solely on PostgreSQL + pgvector for semantic search embeddings storage, partitioning tables by dimensions.
+* **Rationale**: Eliminates the need to maintain an external vector database instance (e.g. Pinecone) and keeps transaction boundaries consistent.
+
+---
+
 ## 3. Related Documents
 * [PLATFORM_CORE.md](file:///c:/python/LokTathya/docs/features/00-platform/PLATFORM_CORE.md)
 * [CIVIC_AI_ARCHITECTURE.md](file:///c:/python/LokTathya/docs/documents/ai/CIVIC_AI_ARCHITECTURE.md)

@@ -41,9 +41,9 @@ All imported data passes through a series of validation stages to ensure accurac
 
 During representative ingestion runs, names can contain spelling variations. The reconciliation engine uses Levinshtein fuzzy matching logic to calculate similarity scores:
 
-* **Score >= 0.90**: Automated merge. The record is linked to the existing profile.
-* **0.75 <= Score < 0.90**: Ambiguity flag. The record is logged as a conflict in the `data_quality_conflicts` table for manual review.
-* **Score < 0.75**: New entity. A new representative profile is generated.
+* **Score >= 0.90**: Automated merge. The record is linked to the existing profile (`AUTO_ACCEPTED`).
+* **0.75 <= Score < 0.90**: Ambiguity flag. The record is logged as a conflict in the `data_quality_conflicts` table for manual review (`HUMAN_REVIEW`).
+* **Score < 0.75**: New entity. A new representative profile is generated, or marked as `UNRESOLVED` if name matching rules overlap.
 
 ### Fuzzy Matching Calculation Example:
 The Levinshtein ratio is calculated as:
@@ -68,11 +68,11 @@ Discrepancies identified during validation (e.g. conflicting asset declarations 
 
 ## 5. Validation Rules & Math Constraints
 
-The system runs several automated checks on incoming files:
+The system runs several automated checks across multiple validation tiers (Document, Schema, Domain, Geographic, and Financial):
 * **Elections Validation**: Total votes cast for all candidates must not exceed the total registered voters.
 * **Finance Validation**: The sum of all budget line items must match the declared total expenditure for the fiscal year.
 * **Asset Validation**: Movable assets plus immovable assets must equal the total declared candidate assets.
-* **Quarantine Actions**: If a validation check fails, the record is flagged, marked as `FAILED_VALIDATION`, and written to the quarantine registry to prevent bad data from polluting the production tables.
+* **Quarantine Actions**: If a validation check fails, the record is flagged, marked as `FAILED_VALIDATION`, and written to the quarantine registry with an explicit reason code (e.g. `PARSER_ERROR`, `SCHEMA_ERROR`, `MATH_DISCREPANCY`) to prevent bad data from polluting the production tables.
 
 ---
 
