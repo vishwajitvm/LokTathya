@@ -251,7 +251,7 @@ class GISParser(BaseParser):
                         return self._build_result(meta=meta, structured_content={}, status="ERROR: Archive contains too many files (max 1000)", parser_name="GISParser")
 
                     for name in z.namelist():
-                        if ".." in name or name.startswith("/") or name.startswith("\\"):
+                        if ".." in name or name.startswith("/") or name.startswith("\\") or ":" in name:
                             return self._build_result(meta=meta, structured_content={}, status="ERROR: Malicious path traversal inside archive (Zip Slip Prevention)", parser_name="GISParser")
                     
                     kml_names = [n for n in z.namelist() if n.endswith('.kml')]
@@ -279,7 +279,7 @@ class GISParser(BaseParser):
 
                     names = z.namelist()
                     for name in names:
-                        if ".." in name or name.startswith("/") or name.startswith("\\"):
+                        if ".." in name or name.startswith("/") or name.startswith("\\") or ":" in name:
                             return self._build_result(meta=meta, structured_content={}, status="ERROR: Malicious path traversal inside archive (Zip Slip Prevention)", parser_name="GISParser")
                     
                     structured = {

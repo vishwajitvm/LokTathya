@@ -135,3 +135,17 @@ class ContentVersion(Base):
     storage_path: Mapped[str] = mapped_column(String(1024), nullable=True)
     retrieved_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+
+
+class Quarantine(Base):
+    __tablename__ = 'src_quarantine'
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    source_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('src_source.id'), nullable=True)
+    endpoint_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('src_endpoint.id'), nullable=True)
+    artifact_path: Mapped[str] = mapped_column(String(1024), nullable=True)
+    error_type: Mapped[str] = mapped_column(String(256), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=True)
+    stack_trace: Mapped[str] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="QUARANTINED")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)

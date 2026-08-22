@@ -31,6 +31,18 @@ def test_xml_xxe_rejection():
     res = parser.parse(xxe_xml, {"document_id": "test"})
     assert "forbidden" in res["status"]
 
+def test_xml_billion_laughs_rejection():
+    billion_laughs = b"""<?xml version="1.0"?>
+    <!DOCTYPE lolz [
+     <!ENTITY lol "lol">
+     <!ENTITY lol1 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;">
+    ]>
+    <lolz>&lol1;</lolz>"""
+    
+    parser = ParserFactory.get_parser("XML")
+    res = parser.parse(billion_laughs, {"document_id": "test"})
+    assert "forbidden" in res["status"]
+
 def test_zip_slip_rejection():
     # Generate in-memory zip file containing a traversal file name
     zip_buffer = io.BytesIO()

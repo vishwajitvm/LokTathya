@@ -1,8 +1,5 @@
 graph TD
-    Load[Ingestion Volume] --> Queues[Celery partitions]
-    Queues --> Q1[fetch]
-    Queues --> Q2[pdf / ocr]
-    Queues --> Q3[tabular]
-    Q1 --> W1[Fetch workers]
-    Q2 --> W2[OCR GPU workers]
-    Q3 --> W3[Tabular workers]
+    Scheduler[Celery Beat Scheduler] --> Broker[Redis Message Broker]
+    Broker --> WorkerPool[Celery Worker Auto Scale Pool]
+    WorkerPool --> DB[(PostgreSQL Cluster)]
+    WorkerPool --> MinIO[(MinIO Object Storage)]

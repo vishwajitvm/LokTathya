@@ -1,5 +1,6 @@
 import uuid
 import asyncio
+from datetime import datetime, timezone
 from core.celery_app import celery_app
 from core.database import SessionLocal
 from ingestion.connector_factory import UniversalConnector
@@ -7,6 +8,38 @@ from services.scheduler import SourceScheduler
 from ingestion.discovery import ControlledDiscoveryEngine
 from models.source import Source, SourceEndpoint
 from tracenest import logger
+
+@celery_app.task(name='ingestion.tasks.poll_scheduler')
+def poll_scheduler():
+    logger.info("Executing periodic poll_scheduler task")
+    db = SessionLocal()
+    try:
+        now = datetime.now(timezone.utc)
+        due_endpoints = db.query(SourceEndpoint).filter(
+            SourceEndpoint.enabled == True,
+            SourceEndpoint.status != "DISABLED",
+            (SourceEndpoint.next_scheduled_at == None) | (SourceEndpoint.next_scheduled_at <= now)
+        ).all()
+        
+        triggered_count = 0
+        for ep in due_endpoints:
+            run_id = uuid.uuid4()
+            # Dispatch celery fetch task asynchronously
+            fetch_task.delay(str(ep.id), str(run_id))
+            
+            # Update scheduled time to prevent duplicate triggering
+            ep.next_scheduled_at = SourceScheduler.calculate_next_run(ep.refresh_frequency or "DAILY", now)
+            ep.last_checked = now
+            triggered_count += 1
+            
+        db.commit()
+        return {"status": "SUCCESS", "triggered_count": triggered_count}
+    except Exception as e:
+        logger.error("Poll scheduler task failed", error=str(e))
+        return {"status": "FAILED", "error": str(e)}
+    finally:
+        db.close()
+
 
 @celery_app.task(name='ingestion.tasks.source_discovery')
 def source_discovery(source_id_str: str):

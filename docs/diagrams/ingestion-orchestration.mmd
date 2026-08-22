@@ -1,0 +1,7 @@
+graph TD
+    Trigger[Ingestion Run Trigger] --> FetchQueue[Fetch Queue]
+    FetchQueue --> FormatDetect[Format Detector]
+    FormatDetect --> ParseQueue[Parse Queue: HTML / PDF / Tabular / GIS]
+    ParseQueue --> NormalizeQueue[Normalize Task]
+    NormalizeQueue --> ResolutionQueue[Entity Resolution Task]
+    ResolutionQueue --> ReconciliationQueue[Reconciliation Task]

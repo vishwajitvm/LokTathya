@@ -1,0 +1,4 @@
+graph TD
+    Fetch[Resilient HTTP] --> StoragePath[sources/source_id/endpoints/endpoint_id/versions/content_hash/raw]
+    StoragePath --> MinIO[MinIO Storage Engine]
+    MinIO --> Immutable[Immutable raw bytes]

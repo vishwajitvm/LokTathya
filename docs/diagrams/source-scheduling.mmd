@@ -1,0 +1,5 @@
+graph TD
+    Trigger[Trigger / Cron / API] --> Check[SourceScheduler.schedule_due_endpoints]
+    Check --> Filter[Filter enabled & due endpoints]
+    Filter --> Queue[Queue fetch_task in Celery]
+    Queue --> Update[Update next_scheduled_at & last_checked]

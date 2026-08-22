@@ -1,0 +1,4 @@
+graph TD
+    Ingest[Ingestion operations] --> Tracing[Correlation ID / Task ID injection]
+    Tracing --> TraceNest[TraceNest Logger]
+    TraceNest --> Metrics[Prometheus / API Metrics Endpoint]

@@ -1,0 +1,5 @@
+graph TD
+    Fail[Transient Fail] --> Backoff[Exponential Backoff]
+    Backoff --> Jitter[Jitter calculation]
+    Jitter --> Retry[Reschedule retry run]
+    QueueLen[Queue Length Check] --> Backpressure[Slow discovery / Defer lower priority]

@@ -10,9 +10,17 @@ class ReconciliationEngine:
         Returns the conflict status.
         """
         # If dates are strictly different and one explicitly supersedes
-        if obs_a.get("published_at") != obs_b.get("published_at"):
-            # Mock logic: assuming B is newer
-            return {"status": "SUPERSEDED", "canonical": obs_b, "history": [obs_a]}
+        pub_a = obs_a.get("published_at")
+        pub_b = obs_b.get("published_at")
+        if pub_a and pub_b and pub_a != pub_b:
+            try:
+                # Compare values; if string ISO timestamps, direct comparison works
+                if str(pub_b) > str(pub_a):
+                    return {"status": "SUPERSEDED", "canonical": obs_b, "history": [obs_a]}
+                else:
+                    return {"status": "SUPERSEDED", "canonical": obs_a, "history": [obs_b]}
+            except Exception:
+                pass
             
         if obs_a.get("normalized_value") == obs_b.get("normalized_value"):
             return {"status": "CONSISTENT", "canonical": obs_a}
