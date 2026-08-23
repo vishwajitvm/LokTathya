@@ -89,17 +89,12 @@ class SourceEndpoint(Base):
     )
 
 
-class Dataset(Base):
-    __tablename__ = 'src_dataset'
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    source_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('src_source.id'), nullable=False)
-    name: Mapped[str] = mapped_column(String(512), nullable=False)
-
-
 class IngestionRun(Base):
     __tablename__ = 'src_ingestion_run'
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    dataset_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('src_dataset.id'), nullable=False)
+    # Removing dataset_id constraint until we refactor IngestionRun to point to the new Dataset or just source_id
+    # Wait, IngestionRun has dataset_id. Let's change it to source_id instead, as it runs per source!
+    source_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('src_source.id'), nullable=True)
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     status: Mapped[str] = mapped_column(String(50), nullable=False)
 
