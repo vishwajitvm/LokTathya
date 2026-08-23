@@ -1,4 +1,4 @@
-from sqlalchemy import String, ForeignKey, DateTime, Integer, Boolean, Text
+from sqlalchemy import String, ForeignKey, DateTime, Integer, Boolean, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from .base import Base
@@ -83,6 +83,10 @@ class SourceEndpoint(Base):
     next_scheduled_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     checksum: Mapped[str] = mapped_column(String(256), nullable=True)
     source = relationship("Source")
+
+    __table_args__ = (
+        UniqueConstraint('source_id', 'canonical_url', name='uq_src_endpoint_canonical_url'),
+    )
 
 
 class Dataset(Base):
