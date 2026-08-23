@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from core.database import get_db
-from models.source import IngestionRun, SourceEndpoint, Dataset
+from models.source import IngestionRun, SourceEndpoint
 from datetime import datetime
 from tracenest import logger
 import uuid
@@ -12,15 +12,8 @@ router = APIRouter(prefix="/api/v1/discovery", tags=["Discovery Engine"])
 def trigger_discovery_run(source_id: uuid.UUID, max_pages: int = 50, db: Session = Depends(get_db)):
     logger.info("POST /api/v1/discovery/run – Triggering link discovery", source_id=str(source_id))
     
-    # Check or create default dataset
-    dataset = db.query(Dataset).filter(Dataset.source_id == source_id).first()
-    if not dataset:
-        dataset = Dataset(source_id=source_id, name="Default Dataset")
-        db.add(dataset)
-        db.flush()
-        
     run = IngestionRun(
-        dataset_id=dataset.id,
+        source_id=source_id,
         started_at=datetime.utcnow(),
         status="RUNNING"
     )
@@ -68,7 +61,7 @@ def list_discovery_runs(limit: int = 50, offset: int = 0, db: Session = Depends(
     return [
         {
             "id": str(r.id),
-            "dataset_id": str(r.dataset_id),
+            "source_id": str(r.source_id),
             "started_at": r.started_at,
             "status": r.status
         }

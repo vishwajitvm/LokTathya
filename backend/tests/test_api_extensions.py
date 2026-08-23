@@ -3,7 +3,7 @@ import uuid
 from fastapi.testclient import TestClient
 from main import app
 from core.database import SessionLocal
-from models.source import Source, SourceEndpoint, Quarantine, IngestionRun, Dataset
+from models.source import Source, SourceEndpoint, Quarantine, IngestionRun
 
 client = TestClient(app)
 

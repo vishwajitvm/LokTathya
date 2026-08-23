@@ -1,9 +1,10 @@
 import pytest
 import uuid
+import datetime
 from fastapi.testclient import TestClient
 from main import app
 from core.database import SessionLocal
-from models.source import Source, SourceEndpoint, IngestionBatch, IngestionRun, Dataset
+from models.source import Source, SourceEndpoint, IngestionBatch, IngestionRun
 
 client = TestClient(app)
 
@@ -23,8 +24,7 @@ def db():
             session.query(IngestionBatch).filter(IngestionBatch.id.in_(batch_ids)).delete(synchronize_session=False)
         if run_ids:
             session.query(IngestionRun).filter(IngestionRun.id.in_(run_ids)).delete(synchronize_session=False)
-        if dataset_ids:
-            session.query(Dataset).filter(Dataset.id.in_(dataset_ids)).delete(synchronize_session=False)
+
         if endpoint_ids:
             session.query(SourceEndpoint).filter(SourceEndpoint.id.in_(endpoint_ids)).delete(synchronize_session=False)
         if source_ids:
@@ -42,7 +42,7 @@ def test_source_endpoints_modification_api(db):
     source_ids.append(source.id)
 
     # Create endpoint via POST API
-    res_ep = client.post(f"/api/v1/sources/{source.id}/endpoints?url=https://gov.in/feed.xml")
+    res_ep = client.post(f"/api/v1/sources/{source.id}/endpoints", json={"url": "https://gov.in/feed.xml"})
     assert res_ep.status_code == 200
     ep_id = res_ep.json()["endpoint_id"]
     endpoint_ids.append(uuid.UUID(ep_id))
@@ -59,13 +59,12 @@ def test_discovery_runs_and_candidates_api(db):
     session.commit()
     source_ids.append(source.id)
 
-    dataset = Dataset(source_id=source.id, name="Discovery Dataset")
-    session.add(dataset)
-    session.commit()
-    dataset_ids.append(dataset.id)
-
-    import datetime
-    run = IngestionRun(dataset_id=dataset.id, started_at=datetime.datetime.utcnow(), status="RUNNING")
+    run = IngestionRun(
+        id=uuid.UUID('33333333-3333-3333-3333-333333333333'),
+        source_id=source.id,
+        started_at=datetime.datetime.utcnow(),
+        status='RUNNING'
+    )
     session.add(run)
     session.commit()
     run_ids.append(run.id)
