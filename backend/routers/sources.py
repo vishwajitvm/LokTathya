@@ -62,23 +62,7 @@ def get_source_endpoints(source_id: uuid.UUID, db: Session = Depends(get_db)):
         for ep in endpoints
     ]
 
-@router.get("/{source_id}/history")
-def get_source_history(source_id: uuid.UUID, db: Session = Depends(get_db)):
-    # Mocking response
-    source = db.query(Source).get(source_id)
-    if not source:
-        raise HTTPException(status_code=404, detail="Source not found")
-    
-    return {
-        "source_id": str(source.id),
-        "history": [
-            {
-                "status": source.status,
-                "updated_at": source.updated_at,
-                "authority_name": source.authority_name
-            }
-        ]
-    }
+
 
 @router.get("/documents/{document_id}/versions")
 def get_document_versions(document_id: uuid.UUID, observed_at: Optional[str] = Query(None), db: Session = Depends(get_db)):
@@ -146,22 +130,30 @@ def update_source(id: uuid.UUID, updates: dict, db: Session = Depends(get_db)):
     db.commit()
     return {"status": "SUCCESS", "source_id": str(id)}
 
+from pydantic import BaseModel
+
+class EndpointCreate(BaseModel):
+    url: str
+    method: str = "GET"
+    rate_limit_rpm: Optional[int] = None
+
 @router.post("/{id}/endpoints")
-def create_source_endpoint(id: uuid.UUID, url: str, method: str = "GET", db: Session = Depends(get_db)):
+def create_source_endpoint(id: uuid.UUID, endpoint: EndpointCreate, db: Session = Depends(get_db)):
     source = db.query(Source).filter(Source.id == id).first()
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")
         
     ep = SourceEndpoint(
         source_id=id,
-        url=url,
-        method=method,
+        url=endpoint.url,
+        method=endpoint.method,
+        rate_limit_rpm=endpoint.rate_limit_rpm,
         status="ACTIVE",
         observed_at=datetime.utcnow()
     )
     db.add(ep)
     db.commit()
-    return {"status": "SUCCESS", "endpoint_id": str(ep.id)}
+    return {"status": "SUCCESS", "endpoint_id": str(ep.id), "rate_limit_rpm": ep.rate_limit_rpm}
 
 @router.patch("/endpoints/{ep_id}")
 def update_source_endpoint(ep_id: uuid.UUID, updates: dict, db: Session = Depends(get_db)):
