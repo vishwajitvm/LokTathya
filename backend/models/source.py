@@ -1,4 +1,4 @@
-from sqlalchemy import String, ForeignKey, DateTime, Integer, Boolean, Text
+from sqlalchemy import String, ForeignKey, DateTime, Integer, Boolean, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from .base import Base
@@ -40,7 +40,9 @@ class Source(Base):
     priority: Mapped[int] = mapped_column(Integer, default=3, nullable=True)
     trust_level: Mapped[str] = mapped_column(String(100), nullable=True)
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="ACTIVE")
+    health_status: Mapped[str] = mapped_column(String(50), nullable=False, default="UNKNOWN")
     access_policy: Mapped[str] = mapped_column(String(200), nullable=True)
+    parent_source_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('src_source.id'), nullable=True)
     discovered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=True)
     verified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     last_checked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -49,6 +51,9 @@ class Source(Base):
     next_scheduled_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationship for SourceHistory will be added below.
+    # parent = relationship("Source", remote_side=[id])
 
 
 class SourceEndpoint(Base):
@@ -70,12 +75,18 @@ class SourceEndpoint(Base):
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=True)
     error_count: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
     retry_count: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
+    consecutive_failures: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
+    rate_limit_rpm: Mapped[int] = mapped_column(Integer, nullable=True) # Requests per minute
     last_checked: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     last_success: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     last_failure: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     next_scheduled_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     checksum: Mapped[str] = mapped_column(String(256), nullable=True)
     source = relationship("Source")
+
+    __table_args__ = (
+        UniqueConstraint('source_id', 'canonical_url', name='uq_src_endpoint_canonical_url'),
+    )
 
 
 class Dataset(Base):
@@ -147,6 +158,8 @@ class Quarantine(Base):
     message: Mapped[str] = mapped_column(Text, nullable=True)
     stack_trace: Mapped[str] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="QUARANTINED")
+    action_taken: Mapped[str] = mapped_column(String(100), nullable=True)
+    resolved_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -157,3 +170,12 @@ class IngestionBatch(Base):
     source_ids: Mapped[dict] = mapped_column(JSONB, nullable=False) # JSONB list
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="CREATED")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+
+class SourceHistory(Base):
+    __tablename__ = 'src_source_history'
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    source_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('src_source.id'), nullable=False)
+    snapshot: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    change_reason: Mapped[str] = mapped_column(String(256), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+

@@ -34,7 +34,10 @@ class UniversalConnector:
         # 1. FETCH STAGE
         client = ResilientHTTPClient()
         try:
-            res = await client.fetch(endpoint.url)
+            res = await client.fetch(
+                url=endpoint.url, 
+                rate_limit_rpm=endpoint.rate_limit_rpm
+            )
             if res["status"] != "SUCCESS":
                 return {"status": "FAILED", "stage": "FETCH", "error": res.get("error")}
             

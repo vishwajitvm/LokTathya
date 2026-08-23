@@ -51,27 +51,36 @@ def source_discovery(source_id_str: str):
         if not source:
             return {"status": "ERROR", "message": "Source not found"}
 
-        # Perform discovery on the official domain
         if source.official_domain:
             engine = ControlledDiscoveryEngine(allowed_domains={source.official_domain})
-            # Try to discover sitemap or raw html links
             sitemap_url = f"https://{source.official_domain}/sitemap.xml"
             discovered_urls = asyncio.run(engine.discover_sitemap(sitemap_url))
             
-            # Register discovered URLs as endpoints
+            inserted = 0
             for url in discovered_urls:
-                existing = db.query(SourceEndpoint).filter(SourceEndpoint.url == url).first()
+                from core.url_utils import URLCanonicalizer
+                canonical = URLCanonicalizer.canonicalize(url)
+                
+                # Check for uniqueness using canonical_url
+                existing = db.query(SourceEndpoint).filter(
+                    SourceEndpoint.source_id == source.id,
+                    SourceEndpoint.canonical_url == canonical
+                ).first()
+                
                 if not existing:
                     new_ep = SourceEndpoint(
                         source_id=source.id,
                         url=url,
+                        canonical_url=canonical,
                         method="GET",
-                        status="ACTIVE",
-                        enabled=True
+                        status="CANDIDATE",
+                        enabled=False,
+                        discovery_method="SITEMAP"
                     )
                     db.add(new_ep)
+                    inserted += 1
             db.commit()
-            return {"status": "SUCCESS", "discovered_count": len(discovered_urls)}
+            return {"status": "SUCCESS", "discovered_count": len(discovered_urls), "inserted_candidates": inserted}
         return {"status": "SUCCESS", "message": "No domain configured"}
     except Exception as e:
         logger.error("Source discovery task failed", error=str(e))

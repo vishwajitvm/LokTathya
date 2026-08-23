@@ -82,20 +82,67 @@ services:
     networks:
       - loktathya_net
 
-  worker:
+  worker_discovery:
     build:
       context: ./backend
-    container_name: loktathya_worker
+    container_name: loktathya_worker_discovery
     volumes:
       - ./backend:/app
-    command: ["celery", "-A", "core.celery_app", "worker", "-Q", "celery,source_discovery,fetch,html,pdf,ocr,tabular,gis,normalization,entity_resolution,reconciliation", "--loglevel=info"]
+    command: ["celery", "-A", "core.celery_app", "worker", "-Q", "celery,source_discovery", "--concurrency=2", "--prefetch-multiplier=1", "--loglevel=info"]
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:password@postgres:5432/loktathya}
       REDIS_URL: redis://redis:6379/0
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
-      # LangSmith / LangChain environment variables
+      LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2:-true}
+      LANGCHAIN_PROJECT: ${LANGCHAIN_PROJECT:-loktathya}
+      LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY:-}
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - loktathya_net
+
+  worker_fetch:
+    build:
+      context: ./backend
+    container_name: loktathya_worker_fetch
+    volumes:
+      - ./backend:/app
+    command: ["celery", "-A", "core.celery_app", "worker", "-Q", "fetch", "--concurrency=4", "--prefetch-multiplier=1", "--loglevel=info"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:password@postgres:5432/loktathya}
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2:-true}
+      LANGCHAIN_PROJECT: ${LANGCHAIN_PROJECT:-loktathya}
+      LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY:-}
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - loktathya_net
+
+  worker_parse:
+    build:
+      context: ./backend
+    container_name: loktathya_worker_parse
+    volumes:
+      - ./backend:/app
+    command: ["celery", "-A", "core.celery_app", "worker", "-Q", "html,pdf,ocr,tabular,gis,normalization,entity_resolution,reconciliation", "--concurrency=2", "--prefetch-multiplier=2", "--loglevel=info"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:password@postgres:5432/loktathya}
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
       LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2:-true}
       LANGCHAIN_PROJECT: ${LANGCHAIN_PROJECT:-loktathya}
       LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY:-}

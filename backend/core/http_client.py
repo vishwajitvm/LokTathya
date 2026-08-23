@@ -19,6 +19,8 @@ class ResilientHTTPClient:
             timeout=self.timeout,
             follow_redirects=False
         )
+        from core.rate_limit import DomainRateLimiter
+        self.rate_limiter = DomainRateLimiter()
 
     def _is_safe_url(self, url: str) -> bool:
         """Basic SSRF protection: prevent accessing internal IPs."""
@@ -41,7 +43,8 @@ class ResilientHTTPClient:
         url: str,
         etag: Optional[str] = None,
         last_modified: Optional[str] = None,
-        method: str = "GET"
+        method: str = "GET",
+        rate_limit_rpm: Optional[int] = None
     ) -> Dict[str, Any]:
         """
         Fetch a resource conditionally with manual redirect check.
@@ -59,6 +62,9 @@ class ResilientHTTPClient:
                 return {"status": "BLOCKED", "error": "Unsafe URL (SSRF Prevention)"}
 
             try:
+                # Apply domain-level rate limiting
+                await self.rate_limiter.wait_if_needed(current_url, rate_limit_rpm)
+                
                 response = await self.client.request(method, current_url, headers=headers)
                 
                 # Check for redirects
@@ -96,3 +102,4 @@ class ResilientHTTPClient:
 
     async def close(self):
         await self.client.aclose()
+        await self.rate_limiter.close()
